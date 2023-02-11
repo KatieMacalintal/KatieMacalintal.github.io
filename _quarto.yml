@@ -3,20 +3,19 @@ project:
   output-dir: docs
 
 website:
-  title: "My Awesome CSCI 0451 Blog"
-  output-dir: docs
+  title: "CSCI 0451 Blog"
   navbar:
-    background: "#112a39"
+    background: "#090a36"
     right:
       - about.qmd
       - icon: github
         href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+      - icon: linkedin
+        href: https://linkedin.com
 
 format:
   html:
-    title-block-banner: img/landscape.png
+    title-block-banner: img/tech-background.jpeg
     title-block-banner-color: white
     theme: cosmo
     css: styles.css
