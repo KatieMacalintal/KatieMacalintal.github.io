@@ -1,5 +1,12 @@
 [
   {
+    "objectID": "posts/perceptron/index.html",
+    "href": "posts/perceptron/index.html",
+    "title": "Perceptron",
+    "section": "",
+    "text": "Source Code (perceptron.py) Link\n\n\nA brief walk-through of your implementation of the perceptron update (Equation 1) in your source code. Quote the function which you use to perform the update. It’s not necessary to walk the user through every single aspect of your solution class.\n\nfrom perceptron import Perceptron\n\n\n\n\n\n\nPlease show visualizations of the data, the separating line, and the evolution of the accuracy over training.\n\nimport numpy as np\nimport pandas as pd\nimport seaborn as sns\nfrom matplotlib import pyplot as plt\n\nfrom sklearn.datasets import make_blobs\n\nnp.random.seed(12345)\n\nn = 100\np_features = 3\n\nX, y = make_blobs(n_samples = 100, n_features = p_features - 1, centers = [(-1.7, -1.7), (1.7, 1.7)])\n\nfig = plt.scatter(X[:,0], X[:,1], c = y)\nxlab = plt.xlabel(\"Feature 1\")\nylab = plt.ylabel(\"Feature 2\")\n\n\np = Perceptron()\np.fit(X, y, max_steps = 1000)\nfig = plt.plot(p.history)\nxlab = plt.xlabel(\"Iteration\")\nylab = plt.ylabel(\"Accuracy\")\n\n\ndef draw_line(w, x_min, x_max):\n  x = np.linspace(x_min, x_max, 101)\n  y = -(w[0]*x + w[2])/w[1]\n  plt.plot(x, y, color = \"black\")\n\nfig = plt.scatter(X[:,0], X[:,1], c = y)\nfig = draw_line(p.w, -2, 2)\n\nxlab = plt.xlabel(\"Feature 1\")\nylab = plt.ylabel(\"Feature 2\")\n\n\n\n\n\nimport numpy as np\nimport pandas as pd\nimport seaborn as sns\nfrom matplotlib import pyplot as plt\n\nfrom sklearn.datasets import make_blobs\n\nfrom perceptron import Perceptron\n\nnp.random.seed(12345)\n\nn = 100\np_features = 3\n\nX1, y1 = make_blobs(n_samples = 100, n_features = p_features - 1, centers = [(2,2), (1, 1)])\n\nfig = plt.scatter(X1[:,0], X1[:,1], c = y1)\nxlab = plt.xlabel(\"Feature 1\")\nylab = plt.ylabel(\"Feature 2\")\n\n\n\n\n\np1 = Perceptron()\np1.fit(X1, y1, max_steps=100)\nfig1 = plt.plot(p1.history)\nxlab = plt.xlabel(\"Iteration\")\nylab = plt.ylabel(\"Accuracy\")\n\nCOULD NOT CONVERGE\n\n\n/Users/katiemacalintal/Desktop/Machine Learning/KatieMacalintal.github.io/posts/perceptron/perceptron.py:55: UserWarning: WARNING: Could not converge\n  warnings.warn(\"WARNING: Could not converge\")\n\n\n\n\n\n\n\n\nShow an example of running your algorithm on data with at least 5 features. You don’t need to visualize the data or the separating line, but you should still show the evolution of the score over the training period. Include a comment on whether you believe that the data is linearly separable based on your observation of the score."
+  },
+  {
     "objectID": "posts/example-blog-post/index.html",
     "href": "posts/example-blog-post/index.html",
     "title": "Hello Blog",
@@ -18,7 +25,7 @@
     "href": "index.html",
     "title": "My Awesome CSCI 0451 Blog",
     "section": "",
-    "text": "An example blog post illustrating the key techniques you’ll need to demonstrate your learning in CSCI 0451.\n\n\n\n\n\n\nJan 10, 2023\n\n\nPhil Chodrow\n\n\n\n\n\n\nNo matching items"
+    "text": "Implement and explain the perceptron algorithm using numerical programming and demonstrate its use on synthetic data sets\n\n\n\n\n\n\nFeb 22, 2023\n\n\nKatie Macalintal\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\nAn example blog post illustrating the key techniques you’ll need to demonstrate your learning in CSCI 0451.\n\n\n\n\n\n\nJan 10, 2023\n\n\nPhil Chodrow\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
