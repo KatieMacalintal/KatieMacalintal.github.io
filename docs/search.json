@@ -25,7 +25,7 @@
     "href": "index.html",
     "title": "My Awesome CSCI 0451 Blog",
     "section": "",
-    "text": "Implement and explain the perceptron algorithm using numerical programming and demonstrate its use on synthetic data sets\n\n\n\n\n\n\nFeb 22, 2023\n\n\nKatie Macalintal\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\nAn example blog post illustrating the key techniques you’ll need to demonstrate your learning in CSCI 0451.\n\n\n\n\n\n\nJan 10, 2023\n\n\nPhil Chodrow\n\n\n\n\n\n\nNo matching items"
+    "text": "Implement first-order methods, including simple gradient descent, a momentum method, and stochastic gradient descent, comparing their performance for training logistic regression\n\n\n\n\n\n\nMar 1, 2023\n\n\nKatie Macalintal\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\nImplement and explain the perceptron algorithm using numerical programming and demonstrate its use on synthetic data sets\n\n\n\n\n\n\nFeb 22, 2023\n\n\nKatie Macalintal\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\nAn example blog post illustrating the key techniques you’ll need to demonstrate your learning in CSCI 0451.\n\n\n\n\n\n\nJan 10, 2023\n\n\nPhil Chodrow\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -33,5 +33,12 @@
     "title": "About",
     "section": "",
     "text": "Katie Macalintal\nMiddlebury College\nB.A. Computer Science\n2024"
+  },
+  {
+    "objectID": "posts/optimization/index.html",
+    "href": "posts/optimization/index.html",
+    "title": "Optimization for Logistic Regression",
+    "section": "",
+    "text": "Source Code: logistic-regression.py\n\n\n\n\n\n\nfrom logistic_regression import LogisticRegression # source code\nfrom sklearn.datasets import make_blobs\nfrom matplotlib import pyplot as plt\nimport numpy as np\nnp.seterr(all='ignore') \n\n# make the data\np_features = 3\nX, y = make_blobs(n_samples = 200, n_features = p_features - 1, centers = [(-1, -1), (1, 1)])\n\nfig = plt.scatter(X[:,0], X[:,1], c = y)\nxlab = plt.xlabel(\"Feature 1\")\nylab = plt.ylabel(\"Feature 2\")\n\n\n\n\n\n# fit the model\n\nLR = LogisticRegression()\nLR.fit(X, y, alpha = 0.1, max_epochs = 1000)\n\n# inspect the fitted value of w\nLR.w \n\narray([2.07752228, 1.71852309, 0.51754512])\n\n\n\nfig, axarr = plt.subplots(1, 2)\n\naxarr[0].scatter(X[:,0], X[:,1], c = y)\naxarr[0].set(xlabel = \"Feature 1\", ylabel = \"Feature 2\")\n\nf1 = np.linspace(-3, 3, 101)\n\np = axarr[0].plot(f1, (- LR.w[2] - f1*LR.w[0])/LR.w[1], color = \"black\")\n\naxarr[1].plot(LR.loss_history)\naxarr[1].set(xlabel = \"Iteration number\", ylabel = \"Empirical Risk\")\nplt.tight_layout()\n\n#print(\"score history:\", LR.score_history)\nprint(\"last loss:\", LR.loss_history[-1])\n\n#try getting gradient under 0.15\n\nlast loss: 0.2012042067784903\n\n\n\n\n\n\nLR = LogisticRegression()\nLR.fit_stochastic(X, y, \n                  max_epochs = 100, \n                  momentum = True, \n                  batch_size = 10, \n                  alpha = .05) \n\nnum_steps = len(LR.loss_history)\nplt.plot(np.arange(num_steps) + 1, LR.loss_history, label = \"stochastic gradient (momentum)\")\n\nLR = LogisticRegression()\nLR.fit_stochastic(X, y, \n                  max_epochs = 100, \n                  momentum = False, \n                  batch_size = 10, \n                  alpha = .1)\n\nnum_steps = len(LR.loss_history)\nplt.plot(np.arange(num_steps) + 1, LR.loss_history, label = \"stochastic gradient\")\n\nLR = LogisticRegression()\nLR.fit(X, y, alpha = .05, max_epochs = 100)\n\nnum_steps = len(LR.loss_history)\nplt.plot(np.arange(num_steps) + 1, LR.loss_history, label = \"gradient\")\n\nplt.loglog()\n\nlegend = plt.legend()"
   }
 ]
