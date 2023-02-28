@@ -45,15 +45,15 @@ class LogisticRegression():
             else:
                 prev_loss = new_loss
             
-            # if (np.allclose(gradient, 0)): 
-            #     break
+        if not (np.isclose(new_loss, prev_loss)):
+            print("DOES NOT CONVERGE")
                 
     """
     Creates instance variables of weights w (including the bias term b), 
     loss_history (list of the evolution of the loss), and 
     score_history (list of the evolution of the score, see score(X, y).
     """
-    def fit_stochastic(self, X, y, alpha = 0.001, max_epochs = 10000, batch_size = 10, momentum = False):
+    def fit_stochastic(self, X, y, alpha = 0.001, max_epochs = 100, batch_size = 10, momentum = False):
         
         # Add constant feature to feature matrix 
         X_ = np.append(X, np.ones((X.shape[0], 1)), 1)
@@ -95,15 +95,17 @@ class LogisticRegression():
                 prev_w = self.w
                 self.w = self.w - (alpha * gradient) + (beta * (self.w - prev_w))
 
-                # probably need to add some variation of the conditional here 
-                new_loss = self.loss(X_, y) # compute loss
-                if np.isclose(new_loss, prev_loss):          
-                    break
-                else:
-                    prev_loss = new_loss
+            new_loss = self.loss(X_, y) # compute loss  
+            if np.isclose(new_loss, prev_loss):          
+                break
+            else:
+                prev_loss = new_loss
             
             self.score_history.append(self.score(X_, y))
             self.loss_history.append(self.loss(X_, y))
+        
+        if not (np.isclose(new_loss, prev_loss)):
+            print("DOES NOT CONVERGE") 
     
     """
     Returns a vector of predicted labels, which are 
