@@ -44,7 +44,7 @@ class LogisticRegression():
             self.score_history.append(self.score(X_, y))
             self.loss_history.append(self.loss(X_, y)) 
             
-            # Check if gradient is close to 0 and terminate if so
+            # Check if change in loss is close, terminate
             if np.isclose(new_loss, prev_loss):          
                 break
             else:

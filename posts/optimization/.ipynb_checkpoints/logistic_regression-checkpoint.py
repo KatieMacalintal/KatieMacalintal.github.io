@@ -1,11 +1,16 @@
 import numpy as np
 from scipy.optimize import minimize
+import warnings 
 np.seterr(all='ignore') 
 
 class LogisticRegression():
     
     """
-    Creates instance variables of weights w (including the bias term b), 
+    Determines the variable of weights w (including the bias term b), such that 
+    it separates data X into their respective labels using the gradient 
+    descent framework and logistic loss. 
+    
+    Creates instance variables of weights w, 
     loss_history (list of the evolution of the loss), and 
     score_history (list of the evolution of the score, see score(X, y). 
     """
@@ -23,7 +28,7 @@ class LogisticRegression():
         self.score_history = []
         self.loss_history = []
         
-        prev_loss = np.inf # set loss to positive infinity
+        prev_loss = np.inf # Set loss to positive infinity
         
         # Compute gradient descent
         #     Reference: https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/gradient-descent.html
@@ -46,12 +51,16 @@ class LogisticRegression():
                 prev_loss = new_loss
             
         if not (np.isclose(new_loss, prev_loss)):
-            print("DOES NOT CONVERGE")
-                
+            warnings.warn("WARNING: Could not converge")
+        
     """
-    Creates instance variables of weights w (including the bias term b), 
+    Determines the variable of weights w (including the bias term b), such that 
+    it separates data X into their respective labels using stochastic gradient 
+    descent and logistic loss. 
+    
+    Creates instance variables of weights w, 
     loss_history (list of the evolution of the loss), and 
-    score_history (list of the evolution of the score, see score(X, y).
+    score_history (list of the evolution of the score, see score(X, y). 
     """
     def fit_stochastic(self, X, y, alpha = 0.001, max_epochs = 100, batch_size = 10, momentum = False):
         
@@ -77,7 +86,7 @@ class LogisticRegression():
         else:
             beta = 0
         
-        prev_loss = np.inf # handy way to start off the loss
+        prev_loss = np.inf # Set loss to positive infinity
 
         # Compute gradient 
         #     Provided in description: https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/gradient-descent.html
@@ -85,7 +94,8 @@ class LogisticRegression():
 
             order = np.arange(n)
             np.random.shuffle(order)
-
+            
+            # Compute gradient on batches 
             for batch in np.array_split(order, n // batch_size + 1):
                 x_batch = X_[batch,:] #extract features 
                 y_batch = y[batch] #extract targets 
@@ -105,7 +115,7 @@ class LogisticRegression():
             self.loss_history.append(self.loss(X_, y))
         
         if not (np.isclose(new_loss, prev_loss)):
-            print("DOES NOT CONVERGE") 
+            warnings.warn("WARNING: Could not converge")
     
     """
     Returns a vector of predicted labels, which are 
@@ -127,25 +137,28 @@ class LogisticRegression():
         return np.mean(y == 1 *(self.predict(X) > 0))
     
     """ 
-    Return overall loss (empirical risk) of the current weights w on data X and labels y 
+    Return overall loss (empirical risk) of the current weights w on data X and labels y,
+    using logistic loss. 
     
     Reference: https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/gradient-descent.html
     """
     def loss(self, X, y): 
-        y_ = self.predict(X)
+        # Compute predictions 
+        y_ = self.predict(X) 
+        #Compute average loss per observation
         loss = (-y * np.log(self.sigmoid(y_))) - ((1 - y) * np.log(1 - self.sigmoid(y_)))
         return loss.mean() 
     
     """
-
+    Logistic signmoid function for logistic loss. 
+    
     Reference: https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/gradient-descent.html
     """
     def sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
-
     
     """
-    
+    Calculate the gradient of our loss function, which uses logistic loss 
     """
     def gradient(self, X, y):
         # Equation Reference: https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/gradient-descent.html 
