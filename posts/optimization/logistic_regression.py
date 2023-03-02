@@ -75,6 +75,7 @@ class LogisticRegression():
         
         # Initialize random weight vector where self.w = (w, -b) 
         self.w = np.random.rand(p)
+        prev_w = np.array(self.w)
         
         # Initialize new instance variables 
         self.score_history = []
@@ -102,8 +103,8 @@ class LogisticRegression():
                 gradient = self.gradient(x_batch, y_batch) 
                 
                 # Perform gradient step
-                prev_w = self.w
                 self.w = self.w - (alpha * gradient) + (beta * (self.w - prev_w))
+                prev_w = np.array(self.w) #what should the previous w be initalized to
 
             new_loss = self.loss(X_, y) # compute loss  
             if np.isclose(new_loss, prev_loss):          
