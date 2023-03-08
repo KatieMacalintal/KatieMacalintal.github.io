@@ -340,7 +340,7 @@ features: ['Culmen Length (mm)' 'Flipper Length (mm)' 'Island_Biscoe' 'Island_Dr
 </div>
 </div>
 <p>We see that the exhaustive search also found the qualitative <em>Island</em> feature to be most useful. We can further inspect why this qualitative <em>Island</em> feature was chosen using functions like <code>groupby</code> and <code>aggregate</code> from the <code>pandas</code> package.</p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">Resources: </span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">https://jakevdp.github.io/PythonDataScienceHandbook/03.08-aggregation-and-grouping.html</span></span>
@@ -355,17 +355,19 @@ features: ['Culmen Length (mm)' 'Flipper Length (mm)' 'Island_Biscoe' 'Island_Dr
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Group the penguins by island and compute the total count for each island</span></span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>island_totals <span class="op">=</span> counts.groupby(<span class="st">'Island'</span>)[<span class="st">'count'</span>].<span class="bu">sum</span>().reset_index(name<span class="op">=</span><span class="st">'total'</span>)</span>
 <span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge the counts and totals dataframes based on the Island</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge the counts and island_totals</span></span>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> pd.merge(counts, island_totals, on<span class="op">=</span><span class="st">'Island'</span>)</span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the percentage</span></span>
 <span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>results[<span class="st">'percentage'</span>] <span class="op">=</span> results[<span class="st">'count'</span>] <span class="op">/</span> results[<span class="st">'total'</span>] <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[[<span class="st">'Island'</span>, <span class="st">'Species'</span>, <span class="st">'percentage'</span>]]</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Arrange results to have islands as columns and species as rows</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results.pivot(index<span class="op">=</span><span class="st">'Species'</span>, columns<span class="op">=</span><span class="st">'Island'</span>, values<span class="op">=</span><span class="st">'percentage'</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit results dataframe so that it only contains the Island, Species and percentage</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[[<span class="st">'Island'</span>, <span class="st">'Species'</span>, <span class="st">'percentage'</span>]]</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Arrange results to have islands as columns and species as rows</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results.pivot(index<span class="op">=</span><span class="st">'Species'</span>, columns<span class="op">=</span><span class="st">'Island'</span>, values<span class="op">=</span><span class="st">'percentage'</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Island                                     Biscoe  Dream  Torgersen
 Species                                                            
@@ -391,7 +393,7 @@ Gentoo penguin (Pygoscelis papua)           74.26    NaN        NaN</code></pre>
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">"Culmen Length (mm)"</span>, y<span class="op">=</span><span class="st">"Culmen Depth (mm)"</span>, hue<span class="op">=</span><span class="st">"Species"</span></span>
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Exhaustive Search Features"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>&lt;seaborn.axisgrid.FacetGrid at 0x129092ee0&gt;</code></pre>
+<pre><code>&lt;seaborn.axisgrid.FacetGrid at 0x141ddaee0&gt;</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-9-output-2.png" class="img-fluid"></p>
