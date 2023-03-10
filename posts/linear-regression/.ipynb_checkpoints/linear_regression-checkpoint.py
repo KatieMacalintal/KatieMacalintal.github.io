@@ -29,8 +29,8 @@ class LinearRegression():
         
         # Precompute P and q for finding the gradient 
         P = X_.T@X_
-        #print(f"{np.shape(P)}\n{P=}\n")
         q = X_.T@y
+        #print(f"{np.shape(P)}\n{P=}\n")
         #print(f"{np.shape(q)}\n{q=}\n")
         
         prev_loss = np.inf
@@ -39,8 +39,8 @@ class LinearRegression():
             
             # Gradient step
             gradient = (P@self.w) - q
-            print(f"{np.shape(gradient)}\n{gradient=}\n")
-            print(f"{np.shape(self.w)}\n{self.w=}\n")
+            # print(f"{np.shape(gradient)}\n{gradient=}\n")
+            # print(f"{np.shape(self.w)}\n{self.w=}\n")
             self.w -= alpha * gradient 
             new_loss = self.loss(X_, y)
             
@@ -60,12 +60,13 @@ class LinearRegression():
             #     break 
         
         # if not np.allclose(gradient, np.zeros(len(gradient))):
-        #     warnings.warn("WARNING: Could not converge")
+        if not np.allclose(new_loss, prev_loss):
+            warnings.warn("WARNING: Could not converge")
     
     
     def predict(self, X):
-        print(f"{np.shape(X)=}")
-        print(f"{np.shape(self.w)=}")
+        # print(f"{np.shape(X)=}")
+        # print(f"{np.shape(self.w)=}")
         return X@self.w
         
         

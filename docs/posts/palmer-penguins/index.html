@@ -442,7 +442,7 @@ Gentoo penguin (Pygoscelis papua)          24.14  38.21</code></pre>
 </section>
 <section id="explore-modeling" class="level2">
 <h2 class="anchored" data-anchor-id="explore-modeling">Explore: Modeling</h2>
-<p>Now that we have chosen our features, we can begin to train different models using our training data. In this blog post, we explore the models of <code>DecisionTreeClassifier</code> and <code>LogisticRegression</code> and use the <code>plot_regions</code> method below to visualize our decision regions.</p>
+<p>Now that we have chosen our features, we can begin to train different models using our training data. In this blog post, we explore the models of <code>DecisionTreeClassifier</code>, <code>RandomForestClassifier</code>, and <code>LogisticRegression</code> and use the <code>plot_regions</code> method below to visualize our decision regions.</p>
 <div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.patches <span class="im">import</span> Patch</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlxtend.plotting <span class="im">import</span> plot_decision_regions</span>
@@ -533,17 +533,32 @@ Gentoo penguin (Pygoscelis papua)          24.14  38.21</code></pre>
 </div>
 <p>Based on these plotted decision regions and the score, it looks like our <code>DecisionTreeClassifier</code> model did a good job with correctly classifying our training data. It also looks like it was able to do it without overfitting, for the graphs do not look too wiggly or tailored so much to our training data.</p>
 </section>
-<section id="logisticregression" class="level3">
-<h3 class="anchored" data-anchor-id="logisticregression">LogisticRegression</h3>
-<p>For the <code>LogisticRegression</code> model, no arguments are required. So we can just train our model with our selected features.</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<section id="randomforestclassifier" class="level3">
+<h3 class="anchored" data-anchor-id="randomforestclassifier">RandomForestClassifier</h3>
+<p>For the <code>RandomForestClassifier</code> model, no arguments are required. So we can just train our model with our selected features.</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LogisticRegression()</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>LR.fit(X_train[features], y_train)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plot_regions(LR, X_train[features], y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>RFC <span class="op">=</span> RandomForestClassifier()</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>RFC.fit(X_train[features], y_train)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plot_regions(RFC, X_train[features], y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Again, based on these plotted decision regions and the score, it looks like our model did a good job with correctly classifying our training data. It does, however, look like it may be overfitting the data for some of the decision regions look a bit wiggly and tailored too much towards our training data.</p>
+</section>
+<section id="logisticregression" class="level3">
+<h3 class="anchored" data-anchor-id="logisticregression">LogisticRegression</h3>
+<p>For the <code>LogisticRegression</code> model, no arguments are also required. So we can just train our model with our selected features.</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LogisticRegression()</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>LR.fit(X_train[features], y_train)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>plot_regions(LR, X_train[features], y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-16-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 <p>Again, based on these plotted decision regions and the score, it looks like our model did a great job with correctly classifying our training data, even better than the <code>DecisionTreeClassifier</code> model. It also looks like it was able to do it without overfitting, for the graphs do not look too wiggly or tailored so much to our training data.</p>
@@ -551,27 +566,33 @@ Gentoo penguin (Pygoscelis papua)          24.14  38.21</code></pre>
 </section>
 <section id="testing-and-results" class="level2">
 <h2 class="anchored" data-anchor-id="testing-and-results">Testing and Results</h2>
-<p>Now, that we have trained one model using <code>DecisionTreeClassifer</code> and the other using <code>LogisticRegression</code>, we can see which one will yield us our desired results of 100% testing accuracy.</p>
+<p>Now, that we have models trained using <code>DecisionTreeClassifer</code>, <code>RandomForestClassifier</code>, and <code>LogisticRegression</code>, we can see which one will yield us our desired results of 100% testing accuracy.</p>
 <p>First, we download and prepare our testing data.</p>
 <div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>test_url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/middlebury-csci-0451/CSCI-0451/main/data/palmer-penguins/test.csv"</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> pd.read_csv(test_url)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>X_test, y_test <span class="op">=</span> prepare_data(test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>test_url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/middlebury-csci-0451/CSCI-0451/main/data/palmer-penguins/test.csv"</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> pd.read_csv(test_url)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>X_test, y_test <span class="op">=</span> prepare_data(test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Next, we can inspect the performance of each model on the testing data by plotting their decision regions.</p>
 <div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>plot_regions(DTC, X_test[features], y_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-17-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>plot_regions(LR, X_test[features], y_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>plot_regions(DTC, X_test[features], y_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-18-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<p>As we can see based off our decision regions and scores, while our <code>DecisionTreeClassifer</code> model yields promising classification, our <code>LogisticRegression</code> model trained on the features <em>Culmen Length</em>, <em>Culmen Depth</em>, and <em>Islands</em> does even better as it results in 100% testing accuracy.</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>plot_regions(RFC, X_test[features], y_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-19-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>plot_regions(LR, X_test[features], y_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-20-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>As we can see based off our decision regions and scores, while our <code>DecisionTreeClassifer</code> and <code>RandomForestClassifier</code> model yields promising classification, our <code>LogisticRegression</code> model trained on the features <em>Culmen Length</em>, <em>Culmen Depth</em>, and <em>Islands</em> does even better as it results in 100% testing accuracy.</p>
 <p><img src="https://media.giphy.com/media/1mikWsbdZMtfAS2sHR/giphy-downsized-large.gif" class="img-fluid"></p>
 
 
