@@ -13,6 +13,7 @@ class LinearRegression():
     Find and set the optimal weight vector w (which includes the bias term), 
     using the analytical formula. 
     
+    Resource: https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/regression.html
     """
     def fit_analytic(self, X, y):
         X_ = pad(X)
