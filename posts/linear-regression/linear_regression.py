@@ -1,16 +1,18 @@
 import numpy as np
 import warnings 
 
+"""
+Add an extra columns of 1s to X
+"""
 def pad(X):
     return np.append(X, np.ones((X.shape[0], 1)), 1)
 
 class LinearRegression():
     
     """
-    It’s fine for you to either define separate methods like 
-    fit_analytic and fit_gradient for these methods. 
-    It’s also fine to define a single fit method with a 
-    method argument to determine which algorithm is used.
+    Find and set the optimal weight vector w (which includes the bias term), 
+    using the analytical formula. 
+    
     """
     def fit_analytic(self, X, y):
         X_ = pad(X)
