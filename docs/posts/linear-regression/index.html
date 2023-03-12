@@ -8,7 +8,7 @@
 
 <meta name="author" content="Katie Macalintal">
 <meta name="dcterms.date" content="2023-03-15">
-<meta name="description" content="Implement least-squares linear regression, including the useful LASSO regularization for overparameterized problems">
+<meta name="description" content="Implement least-squares linear regression and experiment with LASSO regularization for overparameterized problems">
 
 <title>CSCI 0451 Blog - Implementing Linear Regression</title>
 <style>
@@ -132,6 +132,7 @@ background-size: cover;
     }
     </style>
 
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -178,7 +179,7 @@ background-size: cover;
       <h1 class="title">Implementing Linear Regression</h1>
                   <div>
         <div class="description">
-          Implement least-squares linear regression, including the useful LASSO regularization for overparameterized problems
+          Implement least-squares linear regression and experiment with LASSO regularization for overparameterized problems
         </div>
       </div>
                 </div>
@@ -214,8 +215,22 @@ background-size: cover;
 
 
 
+<p>Source Code: <a href="https://github.com/KatieMacalintal/KatieMacalintal.github.io/blob/main/posts/linear-regression/linear_regression.py">linear_regression.py</a></p>
+<section id="linear-regression" class="level1">
+<h1>Linear Regression</h1>
+<p>In this blog post, we implement least-squares linear regression, which works to predict a real number for each data point based on its features. We also inspect overparameterized problems by experimenting with both our implemented <code>LinearRegression</code> class and the <code>sklearn.linear_model</code> class <code>Lasso</code>.</p>
+<section id="implementation" class="level2">
+<h2 class="anchored" data-anchor-id="implementation">Implementation</h2>
+<p><em>Resource: <a href="https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/regression.html">Regression Notes</a></em></p>
+<p>As discussed in this course, least-squares linear regression fits nicely into the friendly and easier to work with convex linear model framework. In our <code>LinearRegression</code> class, we implemented a linear <code>predict</code> function and a loss function that uses <em>squared error</em>, which is convex. In defining our <code>predict</code> and <code>loss</code> functions in these ways, we are then left with the empirical risk minimization problem of <span class="math display">\[\hat{w}=\underset{w}{\arg\min}\sum_{i=1}^n(\langle{\mathbf{w}}, {\mathbf{x}}_i\rangle - y_i)^{2}=\underset{w}{\arg\min}\left\lVert\mathbf{Xw}-\mathbf{y}\right\rVert_2^2.\]</span></p>
+<p>To solve this empirical risk minimization problem, we first take gradient with respect to <span class="math inline">\(\hat{w}\)</span>, which results in <span class="math display">\[\nabla L(w)=\mathbf{X}^T(\mathbf{Xw}-\mathbf{y}).\]</span></p>
+<p>To continue solving this empirical risk minimization problem and find <span class="math inline">\(\hat{w}\)</span>, we implemented two different fit methods in our <code>LinearRegression</code> class: <code>fit_analytic</code> and <code>fit_gradient</code>.</p>
+<p>In <code>fit_analytic</code>, we use a formula involving matrix inversion that is obtained by using the condition <span class="math inline">\(\nabla L(w)=0\)</span>. This ultimately results in <span class="math display">\[\hat{w}=(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^{T}\mathbf{y}\]</span> and the corresponding code <code>np.linalg.inv(X_.T@X_)@X_.T@y</code> for <code>w</code>.</p>
+<p>In <code>fit_gradient</code>, we use gradient descent and update t<code>w</code> until the change in loss is at its lowest and stops changing. Our gradient descent equation, <span class="math display">\[\nabla L(w)=\mathbf{X}^T(\mathbf{Xw}-\mathbf{y})\]</span> is very expensive, where <span class="math inline">\(\mathbf{X}^T\mathbf{X}\)</span> has time complexity <span class="math inline">\(O(np^2)\)</span>, and <span class="math inline">\(\mathbf{X}^T\mathbf{y}\)</span> has time complexity <span class="math inline">\(O(np)\)</span>. But, since it doesn’t depend on our current <code>w</code> we precompute <span class="math inline">\(\mathbf{X}^T\mathbf{X}\)</span> as <span class="math inline">\({P}\)</span> and <span class="math inline">\(\mathbf{X}^T\mathbf{y}\)</span> as <span class="math inline">\({q}\)</span>. This allows our update to noly take <span class="math inline">\(O(p^2)\)</span> time.</p>
+</section>
 <section id="demo" class="level2">
-<h2 class="anchored" data-anchor-id="demo">DEMO</h2>
+<h2 class="anchored" data-anchor-id="demo">Demo</h2>
+<p>To demonstrate that we’ve implemented the <code>fit_analytic</code> and <code>fit_gradient</code> functions of our <code>LinearRegression</code> class correctly, we can test it on a dataset that has 1 feature to easily visualize the problem and results. We first define relavant functions that will help us with this demo.</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
@@ -235,7 +250,8 @@ background-size: cover;
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X_train, y_train, X_val, y_val</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="2">
+<p>Next, we create our training and validation data, each of which have 100 data points, and as mentioned earlier 1 feature.</p>
+<div class="cell" data-tags="[]" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
@@ -255,47 +271,53 @@ background-size: cover;
 <p><img src="index_files/figure-html/cell-3-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="3">
+<p>Now we can start fitting our model using our implemented <code>LinearRegression</code> class. We first test out our <code>fit_analytic</code> function.</p>
+<div class="cell" data-tags="[]" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> linear_regression <span class="im">import</span> LinearRegression</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LinearRegression()</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>LR.fit_analytic(X_train, y_train) <span class="co"># I used the analytical formula as my default fit method</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>LR.fit_analytic(X_train, y_train)</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training score = </span><span class="sc">{</span>LR<span class="sc">.</span>score(pad(X_train), y_train)<span class="sc">.</span><span class="bu">round</span>(<span class="dv">4</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Validation score = </span><span class="sc">{</span>LR<span class="sc">.</span>score(pad(X_val), y_val)<span class="sc">.</span><span class="bu">round</span>(<span class="dv">4</span>)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Training score = 0.5453
-Validation score = 0.6153</code></pre>
+<pre><code>Training score = 0.7128
+Validation score = 0.7707</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="4">
+<p>When we inspect our training and validation scores, we see that they may not be as high as the scores we would get on classification models in the past. This is because it all depends on the randomly generated data we get and how much noise is present in it. We can also inspect its estimated weight vector as shown below.</p>
+<div class="cell" data-tags="[]" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>LR.w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>array([0.89997685, 0.48451945])</code></pre>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>array([1.15124998, 0.31088572])</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="5">
+<p>Next, we try testing out our <code>fit_gradient</code> function, and inspect its weight.</p>
+<div class="cell" data-tags="[]" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>LR2 <span class="op">=</span> LinearRegression()</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>LR2.fit_gradient(X_train, y_train, alpha <span class="op">=</span> <span class="fl">0.01</span>, max_iter <span class="op">=</span> <span class="fl">1e2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>LR2.fit_gradient(X_train, y_train, alpha <span class="op">=</span> <span class="fl">0.01</span>, max_iter <span class="op">=</span> <span class="fl">1e3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="6">
+<div class="cell" data-tags="[]" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>LR2.w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([0.89895501, 0.48507717])</code></pre>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>array([1.15123929, 0.31089109])</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="7">
+<p>We see that its weight is pretty close to the weight calculated in our <code>fit_analytic</code> function. Since our <code>fit_analytic</code> keeps track of the scores of the current weight, we can also inspect its <code>score_history</code>.</p>
+<div class="cell" data-tags="[]" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plt.plot(LR2.score_history)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Iteration"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
 </div>
 </div>
+<p>As expected, we the score increases monotonically in each iteration. Based on our demo, it looks like our <code>LinearRegression</code> class is working adequately.</p>
 </section>
-<section id="experiments" class="level2">
-<h2 class="anchored" data-anchor-id="experiments">Experiments</h2>
-<div class="cell" data-execution_count="14">
+<section id="linear-regression-experiments" class="level2">
+<h2 class="anchored" data-anchor-id="linear-regression-experiments">Linear Regression Experiments</h2>
+<p>Next, we want to explore what overparameterization can do to our model. To do so, we run an experiment where we increase <code>p_features</code>, the number of features used, but keep <code>n_train</code>, the number of training points, constant. We do this until <code>p_features</code> is all the way to <code>n_train - 1</code> and insect their change in training and validation scores.</p>
+<div class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
@@ -324,25 +346,76 @@ Validation score = 0.6153</code></pre>
 <p><img src="index_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
 </div>
 </div>
+<p>When we inspect our evolution of training scores, we see that generally as our number of features increases, our training score also increases and eventually reaches perfect training classification. When we inspect our evolution of validation scores, however, we see that as our number of features increases, our validation score decreases and eventually shoots down to a very low validation score.<br>
+This graph evolution of the training and validation scores follows the pattern of overfitting. Here, as the number of features increase, we see a gap between the training and validation score get larger. Perhaps this tells us that the more features we use the more vulnerable we are to overfitting.</p>
 </section>
-<section id="lasso" class="level2">
-<h2 class="anchored" data-anchor-id="lasso">LASSO</h2>
-<div class="cell" data-jupyter="{&quot;source_hidden&quot;:true}" data-tags="[]" data-execution_count="9">
+<section id="lasso-regularization-experiments" class="level2">
+<h2 class="anchored" data-anchor-id="lasso-regularization-experiments">LASSO Regularization Experiments</h2>
+<p>Let’s try the same experiment with the <code>LASSO</code> algorithm as provided through the <code>sklearn.linear_model</code>. This algorithm has a modified loss function with a regularization term, which makes the entries of the weight vector <span class="math inline">\(\mathbf{w}\)</span> small. LASSO tends to force entries of the weight vector to be exactly zero, which may be desirable in our experiments where we are increasing the number of features to the number of data points.</p>
+<p>We first experiment with a very low regularization term, where <span class="math inline">\({\alpha} = 0.0009\)</span>.</p>
+<div class="cell" data-tags="[]" data-execution_count="36">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> Lasso</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.001</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> n_train <span class="op">-</span> <span class="dv">1</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>L.fit(X_train, y_train)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> <span class="fl">0.2</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>L.score(X_val, y_val)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>0.7548622009585426</code></pre>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.0009</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    training_scores.append(L.score(X_train, y_train))</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    validation_scores.append(L.score(X_val, y_val))</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    p_features <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>plt.plot(training_scores, label<span class="op">=</span><span class="st">"training"</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>plt.plot(validation_scores, label<span class="op">=</span><span class="st">"validation"</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">'log'</span>)</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">'log'</span>)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-</section>
-<section id="lasso-1" class="level2">
-<h2 class="anchored" data-anchor-id="lasso-1">LASSO</h2>
-<div class="cell" data-tags="[]" data-execution_count="10">
+<p>We see that the results are very similar to what we saw with <code>LinearRegression</code> class, as our number of features increased our training score increased to perfect classification, but our validation score drastically decreased.</p>
+<p>If we increase our regularization strength and set <span class="math inline">\({\alpha} = 0.01\)</span>, we see different results.</p>
+<div class="cell" data-tags="[]" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> <span class="fl">0.2</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.01</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    training_scores.append(L.score(X_train, y_train))</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    validation_scores.append(L.score(X_val, y_val))</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    p_features <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>plt.plot(training_scores, label<span class="op">=</span><span class="st">"training"</span>)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>plt.plot(validation_scores, label<span class="op">=</span><span class="st">"validation"</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">'log'</span>)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">'log'</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Here we see that as our number of features increased our training score still increasing to a close perfect classification, but our validation score is no longer as low as before. If we increase <span class="math inline">\({\alpha} = 0.01\)</span>, we see the gap between our training and validation score decrease even as our number of features increased.</p>
+<div class="cell" data-tags="[]" data-execution_count="33">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
@@ -352,7 +425,7 @@ Validation score = 0.6153</code></pre>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.0009</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.1</span>)</span>
 <span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
 <span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
 <span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
@@ -368,10 +441,11 @@ Validation score = 0.6153</code></pre>
 <span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
 <span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+<p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="11">
+<p>Let’s now see how the Lasso algorithm with a high regularization term can handle when our number of features goes past the number of data points we have.</p>
+<div class="cell" data-execution_count="39">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
@@ -380,8 +454,8 @@ Validation score = 0.6153</code></pre>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.001</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train <span class="op">+</span> <span class="dv">500</span>):</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.1</span>)</span>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
@@ -397,69 +471,14 @@ Validation score = 0.6153</code></pre>
 <span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
 <span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-tags="[]" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> <span class="fl">0.2</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.01</span>)</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    training_scores.append(L.score(X_train, y_train))</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    validation_scores.append(L.score(X_val, y_val))</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    p_features <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>plt.plot(training_scores, label<span class="op">=</span><span class="st">"training"</span>)</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>plt.plot(validation_scores, label<span class="op">=</span><span class="st">"validation"</span>)</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">'log'</span>)</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">'log'</span>)</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> <span class="fl">0.2</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.1</span>)</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    training_scores.append(L.score(X_train, y_train))</span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    validation_scores.append(L.score(X_val, y_val))</span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    p_features <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>plt.plot(training_scores, label<span class="op">=</span><span class="st">"training"</span>)</span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>plt.plot(validation_scores, label<span class="op">=</span><span class="st">"validation"</span>)</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">'log'</span>)</span>
-<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">'log'</span>)</span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
-</div>
-</div>
+<p>Based on our graphs of scores, we see that the Lasso model keeps the validation score within the same range even as our number of features exceed our number of data points.</p>
+<p>As we see through these experiments, the LASSO algorithm handles overparameterization better than our least square linear regression model.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
