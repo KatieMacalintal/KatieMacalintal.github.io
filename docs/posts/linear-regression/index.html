@@ -223,11 +223,11 @@ background-size: cover;
 <section id="implementation" class="level2">
 <h2 class="anchored" data-anchor-id="implementation">Implementation</h2>
 <p><em>Resource: <a href="https://middlebury-csci-0451.github.io/CSCI-0451/lecture-notes/regression.html">Regression Notes</a></em></p>
-<p>As discussed in this course, least-squares linear regression fits nicely into the friendly and easier to work with convex linear model framework. In our <code>LinearRegression</code> class, we implemented a linear <code>predict</code> function and a loss function that uses <em>squared error</em>, which is convex. By defining our <code>predict</code> and <code>loss</code> functions in these ways, we are then left with the empirical risk minimization problem of <span class="math display">\[\hat{w}=\underset{w}{\arg\min}\sum_{i=1}^n(\langle{\mathbf{w}}, {\mathbf{x}}_i\rangle - y_i)^{2}=\underset{w}{\arg\min}\left\lVert\mathbf{Xw}-\mathbf{y}\right\rVert_2^2.\]</span></p>
+<p>As discussed in this course, least-squares linear regression fits nicely into the friendly convex linear model framework. In our <code>LinearRegression</code> class, we implemented a linear <code>predict</code> function and a loss function that uses <em>squared error</em>, which is convex. By defining our <code>predict</code> and <code>loss</code> functions in these ways, we are then left with the empirical risk minimization problem of <span class="math display">\[\hat{w}=\underset{w}{\arg\min}\sum_{i=1}^n(\langle{\mathbf{w}}, {\mathbf{x}}_i\rangle - y_i)^{2}=\underset{w}{\arg\min}\left\lVert\mathbf{Xw}-\mathbf{y}\right\rVert_2^2.\]</span></p>
 <p>To solve this empirical risk minimization problem, we first take gradient with respect to <span class="math inline">\(\hat{w}\)</span>, which results in <span class="math display">\[\nabla L(w)=\mathbf{X}^T(\mathbf{Xw}-\mathbf{y}).\]</span></p>
 <p>To continue solving this empirical risk minimization problem and find <span class="math inline">\(\hat{w}\)</span>, we implemented two different fit methods in our <code>LinearRegression</code> class: <code>fit_analytic</code> and <code>fit_gradient</code>.</p>
 <p>In <code>fit_analytic</code>, we use a formula involving matrix inversion that is obtained by using the condition <span class="math inline">\(\nabla L(w)=0\)</span>. This ultimately results in <span class="math display">\[\hat{w}=(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^{T}\mathbf{y}\]</span> and the corresponding code <code>np.linalg.inv(X_.T@X_)@X_.T@y</code> for <code>w</code>.</p>
-<p>In <code>fit_gradient</code>, we use gradient descent and update <code>w</code> until the change in loss is at its lowest. To compute our gradient descent, which is found through, <span class="math display">\[\nabla L(w)=\mathbf{X}^T(\mathbf{Xw}-\mathbf{y})\]</span> is a very expensive computation because <span class="math inline">\(\mathbf{X}^T\mathbf{X}\)</span> has time complexity <span class="math inline">\(O(np^2)\)</span> and <span class="math inline">\(\mathbf{X}^T\mathbf{y}\)</span> has time complexity <span class="math inline">\(O(np)\)</span>. But, since the gradient doesn’t depend on our current <code>w</code> we precompute <span class="math inline">\(\mathbf{X}^T\mathbf{X}\)</span> as <span class="math inline">\({P}\)</span> and <span class="math inline">\(\mathbf{X}^T\mathbf{y}\)</span> as <span class="math inline">\({q}\)</span>. This allows our <code>w</code> update to only take <span class="math inline">\(O(p^2)\)</span> time.</p>
+<p>In <code>fit_gradient</code>, we use gradient descent and update <code>w</code> until the change in loss is at its lowest. To compute our gradient descent, which is <span class="math display">\[\nabla L(w)=\mathbf{X}^T(\mathbf{Xw}-\mathbf{y}),\]</span> is a very expensive computation because <span class="math inline">\(\mathbf{X}^T\mathbf{X}\)</span> has time complexity <span class="math inline">\(O(np^2)\)</span> and <span class="math inline">\(\mathbf{X}^T\mathbf{y}\)</span> has time complexity <span class="math inline">\(O(np)\)</span>. But since the gradient doesn’t depend on our current <code>w</code> we precompute <span class="math inline">\(\mathbf{X}^T\mathbf{X}\)</span> as <span class="math inline">\({P}\)</span> and <span class="math inline">\(\mathbf{X}^T\mathbf{y}\)</span> as <span class="math inline">\({q}\)</span>. This allows our <code>w</code> update to only take <span class="math inline">\(O(p^2)\)</span> time.</p>
 </section>
 <section id="demo" class="level2">
 <h2 class="anchored" data-anchor-id="demo">Demo</h2>
@@ -251,7 +251,7 @@ background-size: cover;
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X_train, y_train, X_val, y_val</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Next, we create our training and validation data, each of which have 100 data points, and 1 feature.</p>
+<p>Next, we create our training and validation data, each of which have 100 data points and 1 feature.</p>
 <div class="cell" data-tags="[]" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
@@ -282,15 +282,15 @@ background-size: cover;
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training score = </span><span class="sc">{</span>LR<span class="sc">.</span>score(pad(X_train), y_train)<span class="sc">.</span><span class="bu">round</span>(<span class="dv">4</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Validation score = </span><span class="sc">{</span>LR<span class="sc">.</span>score(pad(X_val), y_val)<span class="sc">.</span><span class="bu">round</span>(<span class="dv">4</span>)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Training score = 0.6722
-Validation score = 0.573</code></pre>
+<pre><code>Training score = 0.666
+Validation score = 0.6845</code></pre>
 </div>
 </div>
 <p>When we inspect our training and validation scores, we see that they may not be as high as the scores we would get on classification models in the past. This is because it all depends on the randomly generated data we get and how much noise is present in it. We can also inspect its estimated weight vector as shown below.</p>
 <div class="cell" data-tags="[]" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>LR.w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>array([0.90149111, 0.57773244])</code></pre>
+<pre><code>array([1.04987087, 0.85035285])</code></pre>
 </div>
 </div>
 <p>Next, we try testing out our <code>fit_gradient</code> function, and inspect its weight.</p>
@@ -302,7 +302,7 @@ Validation score = 0.573</code></pre>
 <div class="cell" data-tags="[]" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>LR2.w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([0.901481 , 0.5777378])</code></pre>
+<pre><code>array([1.04986174, 0.85035744])</code></pre>
 </div>
 </div>
 <p>We see that its weight is pretty close to the weight calculated in our <code>fit_analytic</code> function. Since our <code>fit_analytic</code> keeps track of the scores of the current weight, we can also inspect its <code>score_history</code>.</p>
@@ -313,7 +313,8 @@ Validation score = 0.573</code></pre>
 <p><img src="index_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<p>As expected, we the score increases monotonically in each iteration. Based on our demo, it looks like our <code>LinearRegression</code> class is working adequately.</p>
+<p>As expected, we see the score increases monotonically in each iteration.</p>
+<p>Based on this demo, it looks like our <code>LinearRegression</code> class is working adequately.</p>
 </section>
 <section id="linear-regression-experiments" class="level2">
 <h2 class="anchored" data-anchor-id="linear-regression-experiments">Linear Regression Experiments</h2>
@@ -347,45 +348,47 @@ Validation score = 0.573</code></pre>
 <p><img src="index_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<p>When we inspect our evolution of training scores, we see that generally as our number of features increases, our training score also increases and eventually reaches perfect training classification. When we inspect our evolution of validation scores, however, we see that as our number of features increases, our validation score decreases and eventually shoots down to a very low validation score.</p>
+<p>When we inspect our evolution of training scores, we see that generally as our number of features increases, our training score also increases and eventually reaches a perfect training score. When we inspect our evolution of validation scores, however, we see that as our number of features increases, our validation score decreases and eventually shoots down to a very low validation score.</p>
 <p>This evolution of the training and validation scores follows the pattern of overfitting. Here, as the number of features increase, we see a gap between the training and validation score get larger. Perhaps this tells us that the more features we use with least squares linear regression the more vulnerable we are to overfitting.</p>
 </section>
 <section id="lasso-regularization-experiments" class="level2">
 <h2 class="anchored" data-anchor-id="lasso-regularization-experiments">LASSO Regularization Experiments</h2>
 <p>Let’s try the same experiment with the <code>LASSO</code> algorithm as provided through the <code>sklearn.linear_model</code>. This algorithm has a modified loss function with a regularization term, which makes the entries of the weight vector <span class="math inline">\(\mathbf{w}\)</span> small. LASSO tends to force entries of the weight vector to be exactly zero, which may be desirable in our experiments where we are increasing the number of features to the number of data points.</p>
-<p>We first experiment with our regularization set to <span class="math inline">\({\alpha} = 0.01\)</span>.</p>
-<div class="cell" data-tags="[]" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> <span class="fl">0.2</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.01</span>)</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    training_scores.append(L.score(X_train, y_train))</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    validation_scores.append(L.score(X_val, y_val))</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    p_features <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>plt.plot(training_scores, label<span class="op">=</span><span class="st">"training"</span>)</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>plt.plot(validation_scores, label<span class="op">=</span><span class="st">"validation"</span>)</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">'log'</span>)</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">'log'</span>)</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We first experiment with our regularization strength set to <span class="math inline">\({\alpha} = 0.01\)</span>.</p>
+<div class="cell" data-tags="[]" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> Lasso</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> <span class="fl">0.2</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>training_scores <span class="op">=</span> []</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>validation_scores <span class="op">=</span> []</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (p_features <span class="op">&lt;</span> n_train):</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    L <span class="op">=</span> Lasso(alpha <span class="op">=</span> <span class="fl">0.01</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create some data</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    X_train, y_train, X_val, y_val <span class="op">=</span> LR_data(n_train, n_val, p_features, noise)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    L.fit(X_train, y_train)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    training_scores.append(L.score(X_train, y_train))</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    validation_scores.append(L.score(X_val, y_val))</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    p_features <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>plt.plot(training_scores, label<span class="op">=</span><span class="st">"training"</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>plt.plot(validation_scores, label<span class="op">=</span><span class="st">"validation"</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>plt.yscale(<span class="st">'log'</span>)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>plt.xscale(<span class="st">'log'</span>)</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>legend <span class="op">=</span> plt.legend() </span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Number of Features"</span>, ylabel <span class="op">=</span> <span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<p>Here we see that as our number of features increased our training score still increasing to a close perfect classification, but the gap between our two scores is no longer as wide and our validation score is no longer as low as before.</p>
-<p>Now let’s set our regularization to <span class="math inline">\({\alpha} = 0.1\)</span>.</p>
-<div class="cell" data-tags="[]" data-execution_count="11">
+<p>Here we see that as our number of features increased, our training score still increased to a close to perfect score, but our validation score is not as low as it was in least squares linear regression and the gap between these two scores is no longer as wide.</p>
+<p>Now let’s strengthen our regularization to <span class="math inline">\({\alpha} = 0.1\)</span>.</p>
+<div class="cell" data-tags="[]" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
@@ -415,8 +418,8 @@ Validation score = 0.573</code></pre>
 </div>
 </div>
 <p>Here, when our regularization is set to an even higher value, we see the gap between our training and validation score get even smaller as our number of features increase.</p>
-<p>Let’s now see how the Lasso algorithm with a high regularization term can handle when our number of features goes past the number of data points we have.</p>
-<div class="cell" data-execution_count="15">
+<p>Let’s now see how the LASSO algorithm with a high regularization term can handle when our number of features goes past the number of data points we have.</p>
+<div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>n_val <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>p_features <span class="op">=</span> <span class="dv">1</span></span>
@@ -445,8 +448,8 @@ Validation score = 0.573</code></pre>
 <p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<p>Based on our graph of scores, we see that the validation score flucuates a little, but generally stays within the same range even as our number of features exceed our number of data points.</p>
-<p>As we see through these experiments, the LASSO algorithm handles overparameterization better than our least square linear regression model.</p>
+<p>Based on our graph of scores, we see that the validation score fluctuates a little, but generally stays within the same range even as our number of features exceed our number of data points.</p>
+<p>As we see through these experiments, the LASSO algorithm, when provided with a strong regularization term, can handle overparameterization better than our least square linear regression model.</p>
 
 
 </section>
