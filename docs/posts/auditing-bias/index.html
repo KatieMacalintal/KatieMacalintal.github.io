@@ -219,10 +219,10 @@ background-size: cover;
 
 <section id="auditing-allocative-bias" class="level1">
 <h1>Auditing Allocative Bias</h1>
-<p>In this blog post, we are going to train a machine learning model to predict whether an individual in the state of New Jersey (NJ) has an income of over $50K based on other demographic characteristics, excluding sex. After training this model, we will perform a fairness audit to assess whether or not our model displays bias with respect to sex.</p>
+<p>In this blog post, we are going to train a machine learning model to predict whether an individual in the state of New Jersey (NJ) has an income of over $50K based on demographic characteristics, excluding sex. After training this model, we will perform a fairness audit to assess whether or not our model displays bias with respect to sex.</p>
 <section id="preparing-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="preparing-the-data">Preparing the data</h2>
-<p>We first download the PUMS data for the state of New Jersey and add a column to indicate whether the individual makes more than $50K. This new column is titled <code>SAL50K</code> is has the value <code>1</code> if the individual makes $50K or more and <code>0</code> otherwise.</p>
+<p>We first download the PUMS data for the state of New Jersey and add a column to indicate whether the individual makes more than $50K. This new column is titled <code>SAL50K</code> and has the value <code>1</code> if the individual makes $50K or more and <code>0</code> otherwise.</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> folktables <span class="im">import</span> ACSDataSource, ACSEmployment, BasicProblem, adult_filter</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -398,12 +398,33 @@ background-size: cover;
 </div>
 </div>
 </div>
-<p>Based on the dimensions of our downloaded PUMS data, we see that there are over 250 features documented. These are too many features to train on, so in our modeling tasks, we will only focus on … - ESR is employment status (1 if employed, 0 if not)<br>
-- RAC1P is race (1 for White Alone, 2 for Black/African American alone, 3 and above for other self-identified racial groups)<br>
-- DEAR, DEYE, and DREM relate to certain disability statuses</p>
-<p>Note that we do not include … - SEX is binary sex (1 for male, 2 for female)<br>
-- SAL50K is added column indicating whether the individual makes more than 50K<br>
-for <code>SEX</code> is our group choice that we will evaluate bias against and <code>SAL50K</code> is our target variable.</p>
+<p>Based on the dimensions of our downloaded PUMS data, we see that there are over 250 features documented. These are too many features to train on, so in our modeling tasks, we will only focus on …</p>
+<ul>
+<li><code>AGEP</code> is age<br>
+</li>
+<li><code>SCHL</code> is educational attainment<br>
+</li>
+<li><code>MAR</code> is marital status<br>
+</li>
+<li><code>RELP</code> is relationship<br>
+</li>
+<li><code>CIT</code> is citizenship status.</li>
+<li><code>MIG</code> is mobility status</li>
+<li><code>MIL</code> is miliary service</li>
+<li><code>ANC</code> is ancestry recode</li>
+<li><code>RAC1P</code> is race <em>(1 for White Alone, 2 for Black/African American alone, 3 for Native American alone, 4 for Alaska Native alone, 5 for Native American and Alaska Native tribes specified, 6 for Asian alone, 7 for Native Hawaiian and Other Pacific Islander alone, 8 for Some Other Race alone, 9 for Two or more races)</em><br>
+</li>
+<li><code>ESR</code> is employment status <em>(1 if employed, 0 if not)</em><br>
+</li>
+<li><code>DIS</code>, <code>DEAR</code>, <code>DEYE</code>, and <code>DREM</code> relate to certain disability statuses</li>
+</ul>
+<p>Note that we do not include …</p>
+<ul>
+<li><code>SEX</code> is binary sex (1 for male, 2 for female)<br>
+</li>
+<li><code>SAL50K</code> is added column indicating whether the individual makes more than 50K</li>
+</ul>
+<p>for <code>SEX</code> is our group choice that we will evaluate bias against and <code>SAL50K</code> is our target variable.</p>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Possible features suggested to use</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>possible_features<span class="op">=</span>[<span class="st">'AGEP'</span>, <span class="st">'SCHL'</span>, <span class="st">'MAR'</span>, <span class="st">'RELP'</span>, <span class="st">'DIS'</span>, <span class="st">'ESP'</span>, <span class="st">'CIT'</span>, <span class="st">'MIG'</span>, <span class="st">'MIL'</span>, <span class="st">'ANC'</span>, <span class="st">'NATIVITY'</span>, <span class="st">'DEAR'</span>, <span class="st">'DEYE'</span>, <span class="st">'DREM'</span>, <span class="st">'SEX'</span>, <span class="st">'RAC1P'</span>, <span class="st">'ESR'</span>, <span class="st">'SAL50K'</span>]</span>
@@ -565,11 +586,12 @@ for <code>SEX</code> is our group choice that we will evaluate bias against and 
 <p>Before we train our model, we are going to inspect any patterns we see in our training data.</p>
 <div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(X_train, columns <span class="op">=</span> features_to_use)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"SEX"</span>] <span class="op">=</span> group_train</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"&gt;50K"</span>] <span class="op">=</span> y_train</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>df.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(X_train, columns <span class="op">=</span> features_to_use)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"SEX"</span>] <span class="op">=</span> group_train</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"&gt;50K"</span>] <span class="op">=</span> y_train</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>df.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>(70868, 18)</code></pre>
 </div>
@@ -582,40 +604,38 @@ for <code>SEX</code> is our group choice that we will evaluate bias against and 
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>more_than_50K[<span class="st">'percent'</span>] <span class="op">=</span> (more_than_50K[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>more_than_50K <span class="op">=</span> more_than_50K.style.set_caption(<span class="st">"Income Greater Than $50K"</span>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>more_than_50K</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>more_than_50K <span class="op">=</span> more_than_50K.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>more_than_50K</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 
 <style type="text/css">
 </style>
-<table id="T_2e1e9">
+<table id="T_bfa1c">
   <caption>Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th class="blank level0">&nbsp;</th>
-      <th id="T_2e1e9_level0_col0" class="col_heading level0 col0">&gt;50K</th>
-      <th id="T_2e1e9_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_2e1e9_level0_col2" class="col_heading level0 col2">percent</th>
+      <th id="T_bfa1c_level0_col0" class="col_heading level0 col0">&gt;50K</th>
+      <th id="T_bfa1c_level0_col1" class="col_heading level0 col1">count</th>
+      <th id="T_bfa1c_level0_col2" class="col_heading level0 col2">percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th id="T_2e1e9_level0_row0" class="row_heading level0 row0">0</th>
-      <td id="T_2e1e9_row0_col0" class="data row0 col0">False</td>
-      <td id="T_2e1e9_row0_col1" class="data row0 col1">48752</td>
-      <td id="T_2e1e9_row0_col2" class="data row0 col2">68.790000</td>
+      <td id="T_bfa1c_row0_col0" class="data row0 col0">False</td>
+      <td id="T_bfa1c_row0_col1" class="data row0 col1">48752</td>
+      <td id="T_bfa1c_row0_col2" class="data row0 col2">68.790000</td>
     </tr>
     <tr>
-      <th id="T_2e1e9_level0_row1" class="row_heading level0 row1">1</th>
-      <td id="T_2e1e9_row1_col0" class="data row1 col0">True</td>
-      <td id="T_2e1e9_row1_col1" class="data row1 col1">22116</td>
-      <td id="T_2e1e9_row1_col2" class="data row1 col2">31.210000</td>
+      <td id="T_bfa1c_row1_col0" class="data row1 col0">True</td>
+      <td id="T_bfa1c_row1_col1" class="data row1 col1">22116</td>
+      <td id="T_bfa1c_row1_col2" class="data row1 col2">31.210000</td>
     </tr>
   </tbody>
 </table>
 </div>
 </div>
-<p>Based on the table below, we see that about 58.94% of those who make more than $50K in our training data are male and the remaining 41.06% are female.</p>
+<p>Based on the table below, we see that of those who make more than $50K in our training data, about 59% of them are male while the remaining 41% of them are female.</p>
 <div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>filtered_df <span class="op">=</span> df[df[<span class="st">'&gt;50K'</span>] <span class="op">==</span> <span class="va">True</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -624,34 +644,31 @@ for <code>SEX</code> is our group choice that we will evaluate bias against and 
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex[<span class="st">'percent'</span>] <span class="op">=</span> (more_than_50K_by_sex[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex <span class="op">=</span> more_than_50K_by_sex.style.set_caption(<span class="st">"Sex of Those with Income Greater Than $50K"</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 
 <style type="text/css">
 </style>
-<table id="T_7fab7">
+<table id="T_29996">
   <caption>Sex of Those with Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th class="blank level0">&nbsp;</th>
-      <th id="T_7fab7_level0_col0" class="col_heading level0 col0">SEX</th>
-      <th id="T_7fab7_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_7fab7_level0_col2" class="col_heading level0 col2">percent</th>
+      <th id="T_29996_level0_col0" class="col_heading level0 col0">SEX</th>
+      <th id="T_29996_level0_col1" class="col_heading level0 col1">count</th>
+      <th id="T_29996_level0_col2" class="col_heading level0 col2">percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th id="T_7fab7_level0_row0" class="row_heading level0 row0">0</th>
-      <td id="T_7fab7_row0_col0" class="data row0 col0">1</td>
-      <td id="T_7fab7_row0_col1" class="data row0 col1">13035</td>
-      <td id="T_7fab7_row0_col2" class="data row0 col2">58.940000</td>
+      <td id="T_29996_row0_col0" class="data row0 col0">1</td>
+      <td id="T_29996_row0_col1" class="data row0 col1">13035</td>
+      <td id="T_29996_row0_col2" class="data row0 col2">58.940000</td>
     </tr>
     <tr>
-      <th id="T_7fab7_level0_row1" class="row_heading level0 row1">1</th>
-      <td id="T_7fab7_row1_col0" class="data row1 col0">2</td>
-      <td id="T_7fab7_row1_col1" class="data row1 col1">9081</td>
-      <td id="T_7fab7_row1_col2" class="data row1 col2">41.060000</td>
+      <td id="T_29996_row1_col0" class="data row1 col0">2</td>
+      <td id="T_29996_row1_col1" class="data row1 col1">9081</td>
+      <td id="T_29996_row1_col2" class="data row1 col2">41.060000</td>
     </tr>
   </tbody>
 </table>
@@ -664,34 +681,31 @@ for <code>SEX</code> is our group choice that we will evaluate bias against and 
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>males <span class="op">=</span> filtered_df.groupby([<span class="st">'&gt;50K'</span>]).size().reset_index(name<span class="op">=</span><span class="st">'count'</span>)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>males[<span class="st">'percent'</span>] <span class="op">=</span> (males[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>males <span class="op">=</span> males.style.set_caption(<span class="st">"Males with Income Greater Than $50K"</span>)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>males.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>males</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 
 <style type="text/css">
 </style>
-<table id="T_25deb">
+<table id="T_ea9d9">
   <caption>Males with Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th class="blank level0">&nbsp;</th>
-      <th id="T_25deb_level0_col0" class="col_heading level0 col0">&gt;50K</th>
-      <th id="T_25deb_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_25deb_level0_col2" class="col_heading level0 col2">percent</th>
+      <th id="T_ea9d9_level0_col0" class="col_heading level0 col0">&gt;50K</th>
+      <th id="T_ea9d9_level0_col1" class="col_heading level0 col1">count</th>
+      <th id="T_ea9d9_level0_col2" class="col_heading level0 col2">percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th id="T_25deb_level0_row0" class="row_heading level0 row0">0</th>
-      <td id="T_25deb_row0_col0" class="data row0 col0">False</td>
-      <td id="T_25deb_row0_col1" class="data row0 col1">21342</td>
-      <td id="T_25deb_row0_col2" class="data row0 col2">62.080000</td>
+      <td id="T_ea9d9_row0_col0" class="data row0 col0">False</td>
+      <td id="T_ea9d9_row0_col1" class="data row0 col1">21342</td>
+      <td id="T_ea9d9_row0_col2" class="data row0 col2">62.080000</td>
     </tr>
     <tr>
-      <th id="T_25deb_level0_row1" class="row_heading level0 row1">1</th>
-      <td id="T_25deb_row1_col0" class="data row1 col0">True</td>
-      <td id="T_25deb_row1_col1" class="data row1 col1">13035</td>
-      <td id="T_25deb_row1_col2" class="data row1 col2">37.920000</td>
+      <td id="T_ea9d9_row1_col0" class="data row1 col0">True</td>
+      <td id="T_ea9d9_row1_col1" class="data row1 col1">13035</td>
+      <td id="T_ea9d9_row1_col2" class="data row1 col2">37.920000</td>
     </tr>
   </tbody>
 </table>
@@ -703,173 +717,200 @@ for <code>SEX</code> is our group choice that we will evaluate bias against and 
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> filtered_df.groupby([<span class="st">'&gt;50K'</span>]).size().reset_index(name<span class="op">=</span><span class="st">'count'</span>)</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>females[<span class="st">'percent'</span>] <span class="op">=</span> (females[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> females.style.set_caption(<span class="st">"Females with Income Greater Than $50K"</span>)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>females.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>females</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 
 <style type="text/css">
 </style>
-<table id="T_5e341">
+<table id="T_93e89">
   <caption>Females with Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th class="blank level0">&nbsp;</th>
-      <th id="T_5e341_level0_col0" class="col_heading level0 col0">&gt;50K</th>
-      <th id="T_5e341_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_5e341_level0_col2" class="col_heading level0 col2">percent</th>
+      <th id="T_93e89_level0_col0" class="col_heading level0 col0">&gt;50K</th>
+      <th id="T_93e89_level0_col1" class="col_heading level0 col1">count</th>
+      <th id="T_93e89_level0_col2" class="col_heading level0 col2">percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th id="T_5e341_level0_row0" class="row_heading level0 row0">0</th>
-      <td id="T_5e341_row0_col0" class="data row0 col0">False</td>
-      <td id="T_5e341_row0_col1" class="data row0 col1">27410</td>
-      <td id="T_5e341_row0_col2" class="data row0 col2">75.110000</td>
+      <td id="T_93e89_row0_col0" class="data row0 col0">False</td>
+      <td id="T_93e89_row0_col1" class="data row0 col1">27410</td>
+      <td id="T_93e89_row0_col2" class="data row0 col2">75.110000</td>
     </tr>
     <tr>
-      <th id="T_5e341_level0_row1" class="row_heading level0 row1">1</th>
-      <td id="T_5e341_row1_col0" class="data row1 col0">True</td>
-      <td id="T_5e341_row1_col1" class="data row1 col1">9081</td>
-      <td id="T_5e341_row1_col2" class="data row1 col2">24.890000</td>
+      <td id="T_93e89_row1_col0" class="data row1 col0">True</td>
+      <td id="T_93e89_row1_col1" class="data row1 col1">9081</td>
+      <td id="T_93e89_row1_col2" class="data row1 col2">24.890000</td>
     </tr>
   </tbody>
 </table>
 </div>
 </div>
-<p>NEED TO DO THISSSSS</p>
-<p>Check for intersectional trends by studying the proportion of positive target labels broken out by your chosen group labels and an additional group label. For example, if you chose race (RAC1P) as your group, then you could also choose sex (SEX) and compute the proportion of positive labels by both race and sex. This might be a good opportunity to use a visualization such as a bar chart, e.g.&nbsp;via the seaborn package.</p>
+<p>Overall, based on these tables it looks like males are more likely to make more than $50K.</p>
+<p>We can also inspect intersectional trends by studying the proportion of those who make more than $50K broken out by both our chosen group labels of <code>SEX</code> and an additional group label. Here we have chosen to use <code>RAC1P</code>.</p>
+<p>We first create a data frame that holds that information and then use <code>seaborn</code> package to visualize the new data frame.</p>
+<p>Remember that …</p>
+<ul>
+<li><code>RAC1P</code> is race <em>(1 for White Alone, 2 for Black/African American alone, 3 for Native American alone, 4 for Alaska Native alone, 5 for Native American and Alaska Native tribes specified, 6 for Asian alone, 7 for Native Hawaiian and Other Pacific Islander alone, 8 for Some Other Race alone, 9 for Two or more races)</em><br>
+</li>
+<li><code>SEX</code> is binary sex (1 for male, 2 for female)</li>
+</ul>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create new dataframe</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>filtered_df <span class="op">=</span> df[df[<span class="st">'&gt;50K'</span>] <span class="op">==</span> <span class="dv">1</span>]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>intersectionality <span class="op">=</span> filtered_df.groupby([<span class="st">'SEX'</span>, <span class="st">'RAC1P'</span>]).size().reset_index(name<span class="op">=</span><span class="st">'count'</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>intersectionality[<span class="st">'Percent'</span>] <span class="op">=</span> (intersectionality[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize it using seaborn package</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"whitegrid"</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>sns.barplot(x<span class="op">=</span><span class="st">"RAC1P"</span>, y<span class="op">=</span><span class="st">"Percent"</span>, hue<span class="op">=</span><span class="st">"SEX"</span>, data<span class="op">=</span>intersectionality).<span class="bu">set</span>(title<span class="op">=</span><span class="st">'Percent with Income &gt;$50 by SEX and RAC1P'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<pre><code>[Text(0.5, 1.0, 'Percent with Income &gt;$50 by SEX and RAC1P')]</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-11-output-2.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Based on the bar plot above, we see that white men make up the majority of those who make more than $50K in our data, followed by white women. In our training data, we also see that individuals who are not white, regardless of their sex, make up a small portion of those who make more than $50K.</p>
 </section>
 <section id="training-our-model" class="level2">
 <h2 class="anchored" data-anchor-id="training-our-model">Training Our Model</h2>
-<p>Now it is time to train our model. The model we chose to use is the DecisionTreeClassifier, which requires a specified <code>max_depth</code>. To find our optimum <code>max_depth</code> we use cross validation.</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>max_score <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>best_depth <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2</span>, <span class="dv">20</span>):</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    T <span class="op">=</span> DecisionTreeClassifier(max_depth <span class="op">=</span> d)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    cv_mean <span class="op">=</span> cross_val_score(T, X_train, y_train, cv <span class="op">=</span> <span class="dv">10</span>).mean()</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    ax.scatter(d, cv_mean, color <span class="op">=</span> <span class="st">"black"</span>)</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cv_mean <span class="op">&gt;</span> max_score:</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        max_score <span class="op">=</span> cv_mean </span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        best_depth <span class="op">=</span> d</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> ax.<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Complexity (depth)"</span>, ylabel <span class="op">=</span> <span class="st">"Performance (score)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Now it is time to train our model. The model we chose to use is the <code>DecisionTreeClassifier</code>, which requires a specified <code>max_depth</code>. To find our optimum <code>max_depth</code> we use cross validation.</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.tree <span class="im">import</span> DecisionTreeClassifier</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>max_score <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>best_depth <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2</span>, <span class="dv">20</span>):</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    T <span class="op">=</span> DecisionTreeClassifier(max_depth <span class="op">=</span> d)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    cv_mean <span class="op">=</span> cross_val_score(T, X_train, y_train, cv <span class="op">=</span> <span class="dv">10</span>).mean()</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    ax.scatter(d, cv_mean, color <span class="op">=</span> <span class="st">"black"</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cv_mean <span class="op">&gt;</span> max_score:</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        max_score <span class="op">=</span> cv_mean </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>        best_depth <span class="op">=</span> d</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> ax.<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"Complexity (depth)"</span>, ylabel <span class="op">=</span> <span class="st">"Performance (score)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+<p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<p>For our model, we create a pipeline with <code>StandardScaler()</code> and our <code>DecisionTreeClassifier</code> with the our found optimum <code>max_depth</code>. The pipeline and <code>StandardScaler()</code> allow us to …</p>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>DTC <span class="op">=</span> DecisionTreeClassifier(max_depth <span class="op">=</span> best_depth)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> make_pipeline(StandardScaler(), DTC)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<style>#sk-container-id-2 {color: black;background-color: white;}#sk-container-id-2 pre{padding: 0;}#sk-container-id-2 div.sk-toggleable {background-color: white;}#sk-container-id-2 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-2 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-2 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-2 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-2 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-2 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-2 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-2 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-2 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-2 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-2 div.sk-item {position: relative;z-index: 1;}#sk-container-id-2 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-2 div.sk-item::before, #sk-container-id-2 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-2 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-2 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-2 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-2 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-2 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-2 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-2 div.sk-label-container {text-align: center;}#sk-container-id-2 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-2 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-2" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[('standardscaler', StandardScaler()),
+<p>For our model, we create a pipeline with <code>StandardScaler()</code> and our <code>DecisionTreeClassifier</code> with the our found optimum <code>max_depth</code>.</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> make_pipeline</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>DTC <span class="op">=</span> DecisionTreeClassifier(max_depth <span class="op">=</span> best_depth)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> make_pipeline(StandardScaler(), DTC)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<style>#sk-container-id-1 {color: black;background-color: white;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[('standardscaler', StandardScaler()),
                 ('decisiontreeclassifier',
-                 DecisionTreeClassifier(max_depth=9))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"><label for="sk-estimator-id-4" class="sk-toggleable__label sk-toggleable__label-arrow">Pipeline</label><div class="sk-toggleable__content"><pre>Pipeline(steps=[('standardscaler', StandardScaler()),
+                 DecisionTreeClassifier(max_depth=9))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox"><label for="sk-estimator-id-1" class="sk-toggleable__label sk-toggleable__label-arrow">Pipeline</label><div class="sk-toggleable__content"><pre>Pipeline(steps=[('standardscaler', StandardScaler()),
                 ('decisiontreeclassifier',
-                 DecisionTreeClassifier(max_depth=9))])</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-5" type="checkbox"><label for="sk-estimator-id-5" class="sk-toggleable__label sk-toggleable__label-arrow">StandardScaler</label><div class="sk-toggleable__content"><pre>StandardScaler()</pre></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-6" type="checkbox"><label for="sk-estimator-id-6" class="sk-toggleable__label sk-toggleable__label-arrow">DecisionTreeClassifier</label><div class="sk-toggleable__content"><pre>DecisionTreeClassifier(max_depth=9)</pre></div></div></div></div></div></div></div>
+                 DecisionTreeClassifier(max_depth=9))])</pre></div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox"><label for="sk-estimator-id-2" class="sk-toggleable__label sk-toggleable__label-arrow">StandardScaler</label><div class="sk-toggleable__content"><pre>StandardScaler()</pre></div></div></div><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-3" type="checkbox"><label for="sk-estimator-id-3" class="sk-toggleable__label sk-toggleable__label-arrow">DecisionTreeClassifier</label><div class="sk-toggleable__content"><pre>DecisionTreeClassifier(max_depth=9)</pre></div></div></div></div></div></div></div>
 </div>
 </div>
 </section>
 <section id="auditing-our-model" class="level2">
 <h2 class="anchored" data-anchor-id="auditing-our-model">Auditing Our Model</h2>
 <p>Now that our model is trained, we can audit how it does on the test data. We first define a function that may help with finding the positive predictive values (PPV), which is the proportion of positive results that are truly positive, the false negative rate (FNR), and false positive rate (FPR). We also extract our predictions <code>y_hat</code> on the test data.</p>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_PPV_FNR_FPR(data, predictions):</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    confusion <span class="op">=</span> confusion_matrix(data, predictions)</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    TP <span class="op">=</span> confusion[<span class="dv">1</span>][<span class="dv">1</span>]</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    TN <span class="op">=</span> confusion[<span class="dv">0</span>][<span class="dv">0</span>]</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    FP <span class="op">=</span> confusion[<span class="dv">0</span>][<span class="dv">1</span>]</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    FN <span class="op">=</span> confusion[<span class="dv">1</span>][<span class="dv">0</span>]</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    PPV <span class="op">=</span> TP <span class="op">/</span> (TP <span class="op">+</span> FP)</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>PPV<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    FNR <span class="op">=</span> FN <span class="op">/</span> (FN <span class="op">+</span> TP)</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>FNR<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    FPR <span class="op">=</span> FP <span class="op">/</span> (FP <span class="op">+</span> TN)</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>FPR<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract predictions </span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>y_hat <span class="op">=</span> model.predict(X_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_PPV_FNR_FPR(data, predictions):</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    confusion <span class="op">=</span> confusion_matrix(data, predictions)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    TP <span class="op">=</span> confusion[<span class="dv">1</span>][<span class="dv">1</span>]</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    TN <span class="op">=</span> confusion[<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    FP <span class="op">=</span> confusion[<span class="dv">0</span>][<span class="dv">1</span>]</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    FN <span class="op">=</span> confusion[<span class="dv">1</span>][<span class="dv">0</span>]</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    PPV <span class="op">=</span> TP <span class="op">/</span> (TP <span class="op">+</span> FP)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>PPV<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    FNR <span class="op">=</span> FN <span class="op">/</span> (FN <span class="op">+</span> TP)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>FNR<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    FPR <span class="op">=</span> FP <span class="op">/</span> (FP <span class="op">+</span> TN)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>FPR<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract predictions </span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>y_hat <span class="op">=</span> model.predict(X_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="overall-measures" class="level3">
 <h3 class="anchored" data-anchor-id="overall-measures">Overall Measures</h3>
 <p>Now we can examine the overall accuracy, PPV, FNR, and FPR from our model on our test data.</p>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Overall accuracy </span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<pre><code>0.8214245400158031</code></pre>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Overall accuracy </span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>0.8212552206795349</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test, y_hat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test, y_hat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>PPV=0.7015231901420503
-FNR=0.25729298786011956
-FPR=0.1429625379129437</code></pre>
+<pre><code>PPV=0.7013009243409791
+FNR=0.2576553723500634
+FPR=0.1430445118452332</code></pre>
 </div>
 </div>
 </section>
 <section id="group-measures" class="level3">
 <h3 class="anchored" data-anchor-id="group-measures">Group Measures</h3>
 <p>We can also examine the accuracy, PPV, FNR, and FPR for each subgroup in our test data. So examining group 1, is equivalent to examining these values for the males in the test data. And exmaining group 2, is equivalent to examining these values for the females in the test data.</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy for men</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test)[group_test <span class="op">==</span> <span class="dv">1</span>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<pre><code>0.8259855376720318</code></pre>
-</div>
-</div>
 <div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy for women </span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test)[group_test <span class="op">==</span> <span class="dv">2</span>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy for men</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test)[group_test <span class="op">==</span> <span class="dv">1</span>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>0.8261021693491952</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy for women </span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test)[group_test <span class="op">==</span> <span class="dv">2</span>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>0.8167104111986002</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PPV FNR and FPR for men</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test[group_test <span class="op">==</span> <span class="dv">1</span>], y_hat[group_test <span class="op">==</span> <span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PPV FNR and FPR for male</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test[group_test <span class="op">==</span> <span class="dv">1</span>], y_hat[group_test <span class="op">==</span> <span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>PPV=0.7860434496379197
-FNR=0.2597644141351519
+<pre><code>PPV=0.785831960461285
+FNR=0.2606943583384997
 FPR=0.12154076290201944</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PPV FNR and FPR for women</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test[group_test <span class="op">==</span> <span class="dv">2</span>], y_hat[group_test <span class="op">==</span> <span class="dv">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PPV FNR and FPR for female</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test[group_test <span class="op">==</span> <span class="dv">2</span>], y_hat[group_test <span class="op">==</span> <span class="dv">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>PPV=0.609982174688057
-FNR=0.25381596162232883
-FPR=0.15968471755948035</code></pre>
+<pre><code>PPV=0.6099038118988244
+FNR=0.2533798517226341
+FPR=0.15983068165231354</code></pre>
 </div>
 </div>
-<p>We see that the accuracy of each group seem to be within a reasonable range of each other, but the PPV and FPR differ slightly.</p>
+<p>We see that the accuracy of each group seem to be within a reasonable range of each other, but the PPV, FNR, and FPR differ slightly.</p>
 </section>
 </section>
 <section id="bias-measures" class="level2">
 <h2 class="anchored" data-anchor-id="bias-measures">Bias Measures</h2>
-<p>Is your model approximately calibrated? (Calibration: PPV is the same for all groups in the data) No</p>
-<p>Does your model satisfy approximate error rate balance? (Error Rate Balance: FPR and FNR are the same for all groups) No FPRs are different??? but FNRs are the same</p>
-<p>Does your model satisfy statistical parity? (proportion of individuals classified as high-risk is the same for each group; difference in probabilities of a positive outcome)</p>
+<p>Based on our work above and using the definition that calibration is where the PPV is the same for all groups in the data, it does not look like our model is calibrated. We see the males had a higher proportion of positively classified cases that were truly positive than the females.</p>
+<p>Based on the definition that error rate balance is where the FPR and FNR are the same for all groups, we see that our model does not have error rate balance. We see that FNR (predicting a negative label when it was actually positive) for males are slightly higher than the FNR for females. We also see that the FPR (predicting a positive label when it was actually negative) for males are lower than the FPR for females. Our model does not make the same mistakes for each group at the same rate. This is very interesting results based our basic descriptive of our training data where we found that females were a smaller proportion of those who made more than $50K.</p>
+<p>Based on the definition that statistical parity is where the PPVs are similar, we also see that our model does not satisfy statistical parity.</p>
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>In a few paragraphs, discuss the following questions:</p>
-<p>What groups of people could stand to benefit from a system that is able to predict the label you predicted, such as income or employment status? For example, what kinds of companies might want to buy your model for commercial use? Based on your bias audit, what could be the impact of deploying your model for large-scale prediction in commercial or governmental settings? Based on your bias audit, do you feel that your model displays problematic bias? What kind (calibration, error rate, etc)? Beyond bias, are there other potential problems associated with deploying your model that make you uncomfortable? How would you propose addressing some of these problems?</p>
+<p>Ultimately, we feel that our model would not be fit to be deployed in the real world.</p>
+<p>A model like this, that predicts income labels, might be beneficial to companies that try to function in conditions where income is not explicitly disclosed, but is useful. Companies might use a model like this to be more strategic with who to advertise towards. If the brand is known for being more expensive, they might aim to advertise more towards those who have a higher income. A model like this may also be used in more serious conditions that can greatly affect someone’s way of living. Companies that aim to assist lower income individuals may use this model to predict whether who is most in need of their help. It might also help determine who qualifies for loans, insurance, or credit cards.</p>
+<p>Based on our bias audit, our model seems to display all types of problematic bias. Because our model is not callibrated, the rates at which positively classified cases that are truly positive are not the same for each sex. More specifically, we see the males had a higher proportion of positively classified cases that were truly positive than the females. Because our model does not have error rate balance, it does not make the same mistakes for each group at the same rate. More specifically, we see that the rate for predicting a negative label when it was actually positive for males are slightly higher than the rate for females. We also see that the rate for predicting a positive label when it was actually negative for males are lower than the rate for females.</p>
+<p>Due to the results of our bias audit, our model could negatively impact males and females depending on the context in which it may be applied to larger scale predictions in commercial and governmental settings. For government programs that look to assist lower income individuals, this model may incorrectly predict that females make more than they do, denying them the help they might really need. For loans, insurance, or credit cards, the model might predict that males make lower than they actually do, denying them these services that can make a difference in their life. We would not be comfortable releasing these models until the results of the bias audit are improved.</p>
+<p>Beyond bias, I think that this model may be making decisions about an individual without taking their full picture into account. When a model like this has to make big decisions related to loans, credit cards, insurance or government assistance, I think that there should be another person overlooking the models decisions to help regulate and assess the bias in the model. I also think that the individuals this model may be evaluating should have a say before their a decision is made on their behalf. For example, if an individual is applying to a government program for assistance, they should be able to talk with those who make decisions to share more information about their story and better inform why they may need assistance. Ultimately, I think that it’s still important to incorporate people into these decision making processes.</p>
 
 
 </section>
