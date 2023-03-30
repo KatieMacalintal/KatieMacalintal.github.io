@@ -603,36 +603,36 @@ background-size: cover;
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>more_than_50K[<span class="st">'percent'</span>] <span class="op">=</span> (more_than_50K[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>more_than_50K <span class="op">=</span> more_than_50K.style.set_caption(<span class="st">"Income Greater Than $50K"</span>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>more_than_50K <span class="op">=</span> more_than_50K.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>more_than_50K</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>more_than_50K</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 
-<style type="text/css">
-</style>
-<table id="T_bfa1c">
-  <caption>Income Greater Than $50K</caption>
+<div>
+
+<table class="dataframe table table-sm table-striped"><caption>Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th id="T_bfa1c_level0_col0" class="col_heading level0 col0">&gt;50K</th>
-      <th id="T_bfa1c_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_bfa1c_level0_col2" class="col_heading level0 col2">percent</th>
+      <th></th>
+      <th>&gt;50K</th>
+      <th>count</th>
+      <th>percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td id="T_bfa1c_row0_col0" class="data row0 col0">False</td>
-      <td id="T_bfa1c_row0_col1" class="data row0 col1">48752</td>
-      <td id="T_bfa1c_row0_col2" class="data row0 col2">68.790000</td>
+      <th>0</th>
+      <td>False</td>
+      <td>48752</td>
+      <td>68.79</td>
     </tr>
     <tr>
-      <td id="T_bfa1c_row1_col0" class="data row1 col0">True</td>
-      <td id="T_bfa1c_row1_col1" class="data row1 col1">22116</td>
-      <td id="T_bfa1c_row1_col2" class="data row1 col2">31.210000</td>
+      <th>1</th>
+      <td>True</td>
+      <td>22116</td>
+      <td>31.21</td>
     </tr>
   </tbody>
 </table>
+</div>
 </div>
 </div>
 <p>Based on the table below, we see that of those who make more than $50K in our training data, about 59% of them are male while the remaining 41% of them are female.</p>
@@ -643,35 +643,36 @@ background-size: cover;
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex[<span class="st">'percent'</span>] <span class="op">=</span> (more_than_50K_by_sex[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex <span class="op">=</span> more_than_50K_by_sex.style.set_caption(<span class="st">"Sex of Those with Income Greater Than $50K"</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>more_than_50K_by_sex</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 
-<style type="text/css">
-</style>
-<table id="T_29996">
-  <caption>Sex of Those with Income Greater Than $50K</caption>
+<div>
+
+<table class="dataframe table table-sm table-striped"><caption>Sex of Those with Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th id="T_29996_level0_col0" class="col_heading level0 col0">SEX</th>
-      <th id="T_29996_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_29996_level0_col2" class="col_heading level0 col2">percent</th>
+      <th></th>
+      <th>SEX</th>
+      <th>count</th>
+      <th>percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td id="T_29996_row0_col0" class="data row0 col0">1</td>
-      <td id="T_29996_row0_col1" class="data row0 col1">13035</td>
-      <td id="T_29996_row0_col2" class="data row0 col2">58.940000</td>
+      <th>0</th>
+      <td>1</td>
+      <td>13035</td>
+      <td>58.94</td>
     </tr>
     <tr>
-      <td id="T_29996_row1_col0" class="data row1 col0">2</td>
-      <td id="T_29996_row1_col1" class="data row1 col1">9081</td>
-      <td id="T_29996_row1_col2" class="data row1 col2">41.060000</td>
+      <th>1</th>
+      <td>2</td>
+      <td>9081</td>
+      <td>41.06</td>
     </tr>
   </tbody>
 </table>
+</div>
 </div>
 </div>
 <p>Based on the two tables below, we see that about 38% of males and 25% of females have an income of more than $50K.</p>
@@ -679,72 +680,78 @@ background-size: cover;
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>filtered_df <span class="op">=</span> df[df[<span class="st">'SEX'</span>] <span class="op">==</span> <span class="dv">1</span>]</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>males <span class="op">=</span> filtered_df.groupby([<span class="st">'&gt;50K'</span>]).size().reset_index(name<span class="op">=</span><span class="st">'count'</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>males[<span class="st">'percent'</span>] <span class="op">=</span> (males[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>males <span class="op">=</span> males.style.set_caption(<span class="st">"Males with Income Greater Than $50K"</span>)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>males.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>males[<span class="st">'percent'</span>] <span class="op">=</span> (males[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>males</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 
-<style type="text/css">
-</style>
-<table id="T_ea9d9">
-  <caption>Males with Income Greater Than $50K</caption>
+<div>
+
+<table class="dataframe table table-sm table-striped"><caption>Males with Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th id="T_ea9d9_level0_col0" class="col_heading level0 col0">&gt;50K</th>
-      <th id="T_ea9d9_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_ea9d9_level0_col2" class="col_heading level0 col2">percent</th>
+      <th></th>
+      <th>&gt;50K</th>
+      <th>count</th>
+      <th>percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td id="T_ea9d9_row0_col0" class="data row0 col0">False</td>
-      <td id="T_ea9d9_row0_col1" class="data row0 col1">21342</td>
-      <td id="T_ea9d9_row0_col2" class="data row0 col2">62.080000</td>
+      <th>0</th>
+      <td>False</td>
+      <td>21342</td>
+      <td>62.08</td>
     </tr>
     <tr>
-      <td id="T_ea9d9_row1_col0" class="data row1 col0">True</td>
-      <td id="T_ea9d9_row1_col1" class="data row1 col1">13035</td>
-      <td id="T_ea9d9_row1_col2" class="data row1 col2">37.920000</td>
+      <th>1</th>
+      <td>True</td>
+      <td>13035</td>
+      <td>37.92</td>
     </tr>
   </tbody>
 </table>
+</div>
 </div>
 </div>
 <div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>filtered_df <span class="op">=</span> df[df[<span class="st">'SEX'</span>] <span class="op">==</span> <span class="dv">2</span>]</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> filtered_df.groupby([<span class="st">'&gt;50K'</span>]).size().reset_index(name<span class="op">=</span><span class="st">'count'</span>)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>females[<span class="st">'percent'</span>] <span class="op">=</span> (females[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> females.style.set_caption(<span class="st">"Females with Income Greater Than $50K"</span>)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>females.hide(axis<span class="op">=</span><span class="st">"index"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>females[<span class="st">'percent'</span>] <span class="op">=</span> (females[<span class="st">'count'</span>] <span class="op">/</span> <span class="bu">len</span>(filtered_df.index) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>females</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 
-<style type="text/css">
-</style>
-<table id="T_93e89">
-  <caption>Females with Income Greater Than $50K</caption>
+<div>
+
+<table class="dataframe table table-sm table-striped"><caption>Females with Income Greater Than $50K</caption>
   <thead>
     <tr>
-      <th id="T_93e89_level0_col0" class="col_heading level0 col0">&gt;50K</th>
-      <th id="T_93e89_level0_col1" class="col_heading level0 col1">count</th>
-      <th id="T_93e89_level0_col2" class="col_heading level0 col2">percent</th>
+      <th></th>
+      <th>&gt;50K</th>
+      <th>count</th>
+      <th>percent</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td id="T_93e89_row0_col0" class="data row0 col0">False</td>
-      <td id="T_93e89_row0_col1" class="data row0 col1">27410</td>
-      <td id="T_93e89_row0_col2" class="data row0 col2">75.110000</td>
+      <th>0</th>
+      <td>False</td>
+      <td>27410</td>
+      <td>75.11</td>
     </tr>
     <tr>
-      <td id="T_93e89_row1_col0" class="data row1 col0">True</td>
-      <td id="T_93e89_row1_col1" class="data row1 col1">9081</td>
-      <td id="T_93e89_row1_col2" class="data row1 col2">24.890000</td>
+      <th>1</th>
+      <td>True</td>
+      <td>9081</td>
+      <td>24.89</td>
     </tr>
   </tbody>
 </table>
+</div>
 </div>
 </div>
 <p>Overall, based on these tables it looks like males are more likely to make more than $50K.</p>
@@ -756,7 +763,7 @@ background-size: cover;
 </li>
 <li><code>SEX</code> is binary sex (1 for male, 2 for female)</li>
 </ul>
-<div class="cell" data-execution_count="25">
+<div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create new dataframe</span></span>
@@ -767,7 +774,7 @@ background-size: cover;
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize it using seaborn package</span></span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"whitegrid"</span>)</span>
 <span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>sns.barplot(x<span class="op">=</span><span class="st">"RAC1P"</span>, y<span class="op">=</span><span class="st">"Percent"</span>, hue<span class="op">=</span><span class="st">"SEX"</span>, data<span class="op">=</span>intersectionality).<span class="bu">set</span>(title<span class="op">=</span><span class="st">'Percent with Income &gt;$50 by SEX and RAC1P'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell-output cell-output-display" data-execution_count="10">
 <pre><code>[Text(0.5, 1.0, 'Percent with Income &gt;$50 by SEX and RAC1P')]</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -848,15 +855,15 @@ background-size: cover;
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Overall accuracy </span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
-<pre><code>0.8212552206795349</code></pre>
+<pre><code>0.8211987809007789</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test, y_hat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>PPV=0.7013009243409791
-FNR=0.2576553723500634
-FPR=0.1430445118452332</code></pre>
+<pre><code>PPV=0.7009745255599248
+FNR=0.2571117956151477
+FPR=0.14337240757439135</code></pre>
 </div>
 </div>
 </section>
@@ -867,7 +874,7 @@ FPR=0.1430445118452332</code></pre>
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy for men</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>(y_hat <span class="op">==</span> y_test)[group_test <span class="op">==</span> <span class="dv">1</span>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>0.8261021693491952</code></pre>
+<pre><code>0.8259855376720318</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="17">
@@ -877,16 +884,16 @@ FPR=0.1430445118452332</code></pre>
 <pre><code>0.8167104111986002</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="20">
+<div class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PPV FNR and FPR for male</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test[group_test <span class="op">==</span> <span class="dv">1</span>], y_hat[group_test <span class="op">==</span> <span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>PPV=0.785831960461285
-FNR=0.2606943583384997
-FPR=0.12154076290201944</code></pre>
+<pre><code>PPV=0.7850098619329389
+FNR=0.2597644141351519
+FPR=0.12228870605833957</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="21">
+<div class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#PPV FNR and FPR for female</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>find_PPV_FNR_FPR(y_test[group_test <span class="op">==</span> <span class="dv">2</span>], y_hat[group_test <span class="op">==</span> <span class="dv">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
