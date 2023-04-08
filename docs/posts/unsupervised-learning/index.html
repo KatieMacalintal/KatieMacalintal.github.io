@@ -8,7 +8,7 @@
 
 <meta name="author" content="Katie Macalintal">
 <meta name="dcterms.date" content="2023-04-12">
-<meta name="description" content="Implement and experiment with two simple ML approaches for image compression and image segmentation">
+<meta name="description" content="Implement and experiment with two simple ML approaches for image compression and spectral community detection">
 
 <title>CSCI 0451 Blog - Unsupervised Learning with Linear Algebra</title>
 <style>
@@ -178,7 +178,7 @@ background-size: cover;
       <h1 class="title">Unsupervised Learning with Linear Algebra</h1>
                   <div>
         <div class="description">
-          Implement and experiment with two simple ML approaches for image compression and image segmentation
+          Implement and experiment with two simple ML approaches for image compression and spectral community detection
         </div>
       </div>
                 </div>
@@ -214,63 +214,490 @@ background-size: cover;
 
 
 
-<section id="part-1-image-compression-with-the-singular-value-decomposition" class="level1">
-<h1>Part 1: Image Compression with the Singular Value Decomposition</h1>
-<section id="favorite-image-to-greyscale" class="level2">
-<h2 class="anchored" data-anchor-id="favorite-image-to-greyscale">Favorite Image to Greyscale</h2>
-<div class="cell" data-execution_count="1">
+<section id="unsupervised-learning-with-linear-algebra" class="level1">
+<h1>Unsupervised Learning with Linear Algebra</h1>
+<p>In this blog post, we use linear algebra methods for unsupervised learning with two kinds of data: images and graphs. In part I, we implement and experiment with compressing an image using singular value decomposition (SVD). In part II, we implement and experiment with community detection in a graph using spectral clustering.</p>
+<section id="part-i-image-compression-with-the-singular-value-decomposition" class="level2">
+<h2 class="anchored" data-anchor-id="part-i-image-compression-with-the-singular-value-decomposition">Part I: Image Compression with the Singular Value Decomposition</h2>
+<p>In this part of the blog post, we will implement and experiment with compressing a image using singular value decomposition (SVD). To make this simplier for us, the image we will be compressing will be in greyscale.</p>
+<section id="selecting-image-and-converting-to-greyscale" class="level3">
+<h3 class="anchored" data-anchor-id="selecting-image-and-converting-to-greyscale">Selecting Image and Converting to Greyscale</h3>
+<p>In order to compress an image using singular value decomposition (SVD), we first need to select one!</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://i.kym-cdn.com/photos/images/facebook/000/944/663/6a7.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Phineas and Ferb</figcaption><p></p>
+</figure>
+</div>
+<p>Below are functions that will allow us to save this image for our usage and convert it to greyscale.</p>
+<div class="cell" data-execution_count="42">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> PIL</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> urllib</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> read_image(url):</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array(PIL.Image.<span class="bu">open</span>(urllib.request.urlopen(url)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> PIL</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> urllib</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> read_image(url):</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array(PIL.Image.<span class="bu">open</span>(urllib.request.urlopen(url)))</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> to_greyscale(im):</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">-</span> np.dot(im[...,:<span class="dv">3</span>], [<span class="fl">0.2989</span>, <span class="fl">0.5870</span>, <span class="fl">0.1140</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://www.comingsoon.net/wp-content/uploads/sites/3/2023/01/phineas-and-ferb.png?w=1024"</span></span>
+<p>As seen through the image comparison below, our <code>read_image</code> and <code>to_greyscale</code> functions work as anticipated.</p>
+<div class="cell" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pathlib</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>img <span class="op">=</span> read_image(url)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig, axarr <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">7</span>, <span class="dv">3</span>))</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> to_greyscale(im):</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">-</span> np.dot(im[...,:<span class="dv">3</span>], [<span class="fl">0.2989</span>, <span class="fl">0.5870</span>, <span class="fl">0.1140</span>])</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>grey_img <span class="op">=</span> to_greyscale(img)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">0</span>].imshow(img)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">0</span>].axis(<span class="st">"off"</span>)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">0</span>].<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"original"</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">1</span>].imshow(grey_img, cmap <span class="op">=</span> <span class="st">"Greys"</span>)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">1</span>].axis(<span class="st">"off"</span>)</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">1</span>].<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"greyscale"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="3">
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#url = pathlib.Path("../phineas_and_ferb.png").as_uri()</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://i.kym-cdn.com/photos/images/facebook/000/944/663/6a7.png"</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>img <span class="op">=</span> read_image(url)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>fig, axarr <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">7</span>, <span class="dv">3</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>grey_img <span class="op">=</span> to_greyscale(img)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">0</span>].imshow(img)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">0</span>].axis(<span class="st">"off"</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">0</span>].<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"original"</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">1</span>].imshow(grey_img, cmap <span class="op">=</span> <span class="st">"Greys"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">1</span>].axis(<span class="st">"off"</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>axarr[<span class="dv">1</span>].<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"greyscale"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="43">
 <pre><code>[Text(0.5, 1.0, 'greyscale')]</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-4-output-2.png" class="img-fluid"></p>
+<p><img src="index_files/figure-html/cell-3-output-2.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> unsupervised_learning <span class="im">import</span> svd_reconstruct, svd_experiment</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>svd_experiment(to_greyscale(img))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="reconstruct-image-using-svd" class="level3">
+<h3 class="anchored" data-anchor-id="reconstruct-image-using-svd">Reconstruct Image Using SVD</h3>
+<div class="cell" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">Perform an experiment that reconstructs greyscale image (img) with </span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">several different values of k.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span>  </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> svd_experiment(img):</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    columns <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    fig, axarr <span class="op">=</span> plt.subplots(rows, columns) </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># n * k + k + k * m</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(rows):</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(columns):</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            k <span class="op">=</span> (i <span class="op">*</span> <span class="dv">3</span> <span class="op">+</span> j <span class="op">+</span> <span class="dv">1</span>) <span class="op">*</span> <span class="dv">10</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>            img_title <span class="op">=</span> <span class="bu">str</span>(k) <span class="op">+</span> <span class="st">" components"</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>            axarr[i][j].imshow(svd_reconstruct(img, k), cmap<span class="op">=</span><span class="st">"Greys"</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            axarr[i][j].axis(<span class="st">"off"</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>            axarr[i][j].<span class="bu">set</span>(title<span class="op">=</span>img_title)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compare_images(A, A_):</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    fig, axarr <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">7</span>, <span class="dv">3</span>))</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    axarr[<span class="dv">0</span>].imshow(A, cmap <span class="op">=</span> <span class="st">"Greys"</span>)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    axarr[<span class="dv">0</span>].axis(<span class="st">"off"</span>)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    axarr[<span class="dv">0</span>].<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"original image"</span>)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    axarr[<span class="dv">1</span>].imshow(A_, cmap <span class="op">=</span> <span class="st">"Greys"</span>)</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    axarr[<span class="dv">1</span>].axis(<span class="st">"off"</span>)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    axarr[<span class="dv">1</span>].<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"reconstructed image"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">Given a greyscale image (img) and the number of singular values (k) to use, </span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">reconstruct the image from its singular value decomposition. </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> svd_reconstruct(img, k, epsilon <span class="op">=</span> <span class="dv">0</span>):</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># MAKE THE MEMORY THING AN OPTIONAL ARGUMENT HERE</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get height and width from image </span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># No third value in shape since img is in greyscale</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    height, width <span class="op">=</span> img.shape</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get the img as a 2D matrix </span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> np.array(img) </span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Return unmodified data if k is too large</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> ((k <span class="op">&gt;</span> height) <span class="kw">or</span> (k <span class="op">&gt;</span> width)):</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        warnings.warn(<span class="st">"WARNING: k &gt; height or k &gt; width of given image"</span>)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> data</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute a singular value decomposition (SVD)</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    U, sigma, V <span class="op">=</span> np.linalg.svd(data)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create the D matrix in the SVD</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> np.zeros_like(data, dtype<span class="op">=</span><span class="bu">float</span>) <span class="co"># matrix of zeros of same shape as data</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    D[:<span class="bu">min</span>(data.shape),:<span class="bu">min</span>(data.shape)] <span class="op">=</span> np.diag(sigma)        <span class="co"># singular values on the main diagonal</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>D<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Shape of </span><span class="sc">{</span>D<span class="sc">.</span>shape<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>D[<span class="dv">0</span>,<span class="dv">0</span>]<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># User did not specify desired threshold</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (epsilon <span class="op">==</span> <span class="dv">0</span>): </span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Approximate by using specified k components</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>        U_ <span class="op">=</span> U[:,:k] <span class="co"># first k columns of U</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>        D_ <span class="op">=</span> D[:k, :k] <span class="co"># top k singular values in D</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>        V_ <span class="op">=</span> V[:k, :] <span class="co"># first k rows of V</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># User specified a threshold </span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"USER SPECIFIED EPSILON"</span>)</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>        D_rows, D_columns <span class="op">=</span> D.shape</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Check how many components have a singular value larger than epsilon </span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>        new_k <span class="op">=</span> np.count_nonzero(D <span class="op">&gt;</span> epsilon) <span class="co"># Number of components with singular value larger than epilson </span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>new_k<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> ((new_k <span class="op">&gt;</span> height) <span class="kw">or</span> (new_k <span class="op">&gt;</span> width)):</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>            new_k <span class="op">=</span> <span class="bu">min</span>(height, width)</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"adjusted new_k </span><span class="sc">{</span>new_k<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>        U_ <span class="op">=</span> U[:,:new_k] <span class="co"># first k columns of U</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>        D_ <span class="op">=</span> D[:new_k, :new_k] <span class="co"># top k singular values in D</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>        V_ <span class="op">=</span> V[:new_k, :] <span class="co"># first k rows of V </span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If new_k is smaller than specified components, use new_k specified components </span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>        <span class="co"># if (new_k &lt; k):</span></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     print("USING new_k {new_k}")</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     U_ = U[:,:new_k] # first k columns of U</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     D_ = D[:new_k, :new_k] # top k singular values in D</span></span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     V_ = V[:new_k, :new_k] # first k rows of V</span></span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>        <span class="co"># # Otherwise, found enough components with singular value larger than threshold </span></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>        <span class="co"># # and use the users specified k components </span></span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>        <span class="co"># else:</span></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     print(f"USING ORIGINAL k {k}")</span></span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     U_ = U[:,:k] # first k columns of U</span></span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     D_ = D[:k, :k] # top k singular values in D</span></span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>        <span class="co">#     V_ = V[:k, :] # first k rows of V </span></span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Reconstruct and compute approximation of data</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>    data_ <span class="op">=</span> U_ <span class="op">@</span> D_ <span class="op">@</span> V_</span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data_</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#svd_experiment(to_greyscale(img))</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>compare_images(to_greyscale(img), svd_reconstruct(to_greyscale(img), <span class="dv">219</span>, epsilon<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>compare_images(to_greyscale(img), svd_reconstruct(to_greyscale(img), <span class="dv">90</span>, epsilon<span class="op">=</span><span class="dv">100</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>k=5, i=0, j=0
-k=10, i=0, j=1
-k=15, i=0, j=2
-k=20, i=1, j=0
-k=25, i=1, j=1
-k=30, i=1, j=2
-k=35, i=2, j=0
-k=40, i=2, j=1
-k=45, i=2, j=2</code></pre>
+<pre><code>D=array([[107361.80291894,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,  13437.58425079,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,      0.        ,  10010.47331741, ...,
+             0.        ,      0.        ,      0.        ],
+       ...,
+       [     0.        ,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ]])
+Shape of D.shape=(768, 1024)
+D[0,0]=107361.8029189376
+D=array([[107361.80291894,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,  13437.58425079,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,      0.        ,  10010.47331741, ...,
+             0.        ,      0.        ,      0.        ],
+       ...,
+       [     0.        ,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ],
+       [     0.        ,      0.        ,      0.        , ...,
+             0.        ,      0.        ,      0.        ]])
+Shape of D.shape=(768, 1024)
+D[0,0]=107361.8029189376
+USER SPECIFIED EPSILON
+D[0, 0]: 107361.8029189376
+D[1, 1]: 13437.584250785636
+D[2, 2]: 10010.473317407475
+D[3, 3]: 8335.973485937207
+D[4, 4]: 7448.07328358502
+D[5, 5]: 6580.332525352788
+D[6, 6]: 5880.186089491119
+D[7, 7]: 5252.542628847534
+D[8, 8]: 4718.044274193507
+D[9, 9]: 4078.831463516406
+D[10, 10]: 3928.9978579610784
+D[11, 11]: 3720.1954335809514
+D[12, 12]: 3599.3869093878675
+D[13, 13]: 3445.7474851060038
+D[14, 14]: 3167.5996722104387
+D[15, 15]: 3093.839058642698
+D[16, 16]: 2944.8437520991647
+D[17, 17]: 2881.820934298091
+D[18, 18]: 2708.8565643733627
+D[19, 19]: 2615.0516662633913
+D[20, 20]: 2524.6167648607966
+D[21, 21]: 2412.770360623219
+D[22, 22]: 2394.7241546388746
+D[23, 23]: 2334.659665386485
+D[24, 24]: 2201.794285219379
+D[25, 25]: 2113.1931025447493
+D[26, 26]: 2018.973593972689
+D[27, 27]: 2012.4342979742169
+D[28, 28]: 1953.9862633034886
+D[29, 29]: 1882.203794004853
+D[30, 30]: 1871.0284231551236
+D[31, 31]: 1814.0553796052009
+D[32, 32]: 1781.595787082326
+D[33, 33]: 1713.8916563906184
+D[34, 34]: 1667.9252985256212
+D[35, 35]: 1633.0460345129395
+D[36, 36]: 1608.2579145381746
+D[37, 37]: 1592.6711302898834
+D[38, 38]: 1538.7640410933257
+D[39, 39]: 1502.7400013752026
+D[40, 40]: 1482.938417770099
+D[41, 41]: 1455.6805734411812
+D[42, 42]: 1426.201336790752
+D[43, 43]: 1392.9736442327767
+D[44, 44]: 1355.977538397623
+D[45, 45]: 1347.5107927289064
+D[46, 46]: 1312.7589513481958
+D[47, 47]: 1274.596093277438
+D[48, 48]: 1262.66423514038
+D[49, 49]: 1252.3826866146271
+D[50, 50]: 1230.5231464486499
+D[51, 51]: 1195.5127129475538
+D[52, 52]: 1171.6387169960137
+D[53, 53]: 1162.8028837998902
+D[54, 54]: 1148.664033982226
+D[55, 55]: 1124.6829356578019
+D[56, 56]: 1112.0688151626875
+D[57, 57]: 1103.2830280152339
+D[58, 58]: 1076.7559783375032
+D[59, 59]: 1065.6541747130746
+D[60, 60]: 1019.344313377039
+D[61, 61]: 1010.257465420005
+D[62, 62]: 984.0672554647323
+D[63, 63]: 978.0566082994204
+D[64, 64]: 948.8148358230649
+D[65, 65]: 946.239935705234
+D[66, 66]: 926.3178314985535
+D[67, 67]: 916.6694169657412
+D[68, 68]: 892.3655073592056
+D[69, 69]: 886.246080647666
+D[70, 70]: 863.9522303678366
+D[71, 71]: 852.0169483175216
+D[72, 72]: 837.5572769282626
+D[73, 73]: 833.5028340564826
+D[74, 74]: 822.0163959353497
+D[75, 75]: 801.8280119754172
+D[76, 76]: 782.310889366227
+D[77, 77]: 777.8794743468948
+D[78, 78]: 772.6009358691563
+D[79, 79]: 757.3793257554114
+D[80, 80]: 736.8302210182165
+D[81, 81]: 732.4019002912436
+D[82, 82]: 709.1253057352079
+D[83, 83]: 705.6693991488496
+D[84, 84]: 691.9325100077798
+D[85, 85]: 688.9884609770219
+D[86, 86]: 679.9639057906629
+D[87, 87]: 677.1926899390849
+D[88, 88]: 670.9208943442733
+D[89, 89]: 658.8050032749787
+D[90, 90]: 654.2697709157326
+D[91, 91]: 639.4207378909989
+D[92, 92]: 633.0354730920316
+D[93, 93]: 622.9647665155401
+D[94, 94]: 614.4092584086433
+D[95, 95]: 601.0559914521862
+D[96, 96]: 593.8857324186491
+D[97, 97]: 585.7022873469523
+D[98, 98]: 581.7735664028077
+D[99, 99]: 570.527800788899
+D[100, 100]: 564.3460998940317
+D[101, 101]: 553.0919250165108
+D[102, 102]: 548.599267314615
+D[103, 103]: 534.5348687188848
+D[104, 104]: 524.8832252554832
+D[105, 105]: 517.6418672066897
+D[106, 106]: 508.9115660346166
+D[107, 107]: 501.8107815586226
+D[108, 108]: 498.79581909976315
+D[109, 109]: 493.72494077821585
+D[110, 110]: 490.20880885882343
+D[111, 111]: 480.4938114300012
+D[112, 112]: 476.57345694282867
+D[113, 113]: 465.6848637804597
+D[114, 114]: 453.72175260464456
+D[115, 115]: 449.7017057728058
+D[116, 116]: 442.4881018095462
+D[117, 117]: 438.5346461522773
+D[118, 118]: 432.72260921828445
+D[119, 119]: 429.5977734362094
+D[120, 120]: 421.2718518045167
+D[121, 121]: 412.75913584666597
+D[122, 122]: 410.5666900518774
+D[123, 123]: 408.0231273435735
+D[124, 124]: 402.2423558351021
+D[125, 125]: 396.8057879932172
+D[126, 126]: 387.81852312940276
+D[127, 127]: 384.4633148001355
+D[128, 128]: 380.7569125983364
+D[129, 129]: 372.919930768664
+D[130, 130]: 367.8616148997924
+D[131, 131]: 362.3041542299762
+D[132, 132]: 357.3598646959431
+D[133, 133]: 355.27491963664846
+D[134, 134]: 353.7975274328209
+D[135, 135]: 346.1145526565104
+D[136, 136]: 339.4667767171482
+D[137, 137]: 336.34338069081167
+D[138, 138]: 332.7091015538574
+D[139, 139]: 325.79955124241155
+D[140, 140]: 323.2776589736128
+D[141, 141]: 317.22410551960684
+D[142, 142]: 315.93088354570943
+D[143, 143]: 309.80064621950567
+D[144, 144]: 306.2008030844055
+D[145, 145]: 302.03656828292054
+D[146, 146]: 293.3703098199324
+D[147, 147]: 290.5726700183749
+D[148, 148]: 286.99723066393807
+D[149, 149]: 284.0282784612382
+D[150, 150]: 282.4313177395185
+D[151, 151]: 276.46558831511754
+D[152, 152]: 271.48985260237555
+D[153, 153]: 269.19948824354884
+D[154, 154]: 266.6482646228789
+D[155, 155]: 261.2633308246659
+D[156, 156]: 258.2317425803115
+D[157, 157]: 255.41869115547115
+D[158, 158]: 252.19942119086633
+D[159, 159]: 248.48431574978557
+D[160, 160]: 245.4771128110874
+D[161, 161]: 243.86057263617028
+D[162, 162]: 238.2330320811408
+D[163, 163]: 233.35573129994492
+D[164, 164]: 228.24872152442333
+D[165, 165]: 224.94246712550105
+D[166, 166]: 222.28979985468766
+D[167, 167]: 220.5234190119981
+D[168, 168]: 218.29445619919616
+D[169, 169]: 213.11400743184245
+D[170, 170]: 212.43806898451552
+D[171, 171]: 209.869879342106
+D[172, 172]: 206.30300741205133
+D[173, 173]: 202.06809846464273
+D[174, 174]: 199.48400356153536
+D[175, 175]: 197.81514993488418
+D[176, 176]: 194.48636480506056
+D[177, 177]: 191.89129241575793
+D[178, 178]: 187.40015095083731
+D[179, 179]: 186.1400831058181
+D[180, 180]: 181.2083602026975
+D[181, 181]: 179.51219187324418
+D[182, 182]: 177.06676886405577
+D[183, 183]: 173.7811066917909
+D[184, 184]: 172.44856391857948
+D[185, 185]: 169.74873550642482
+D[186, 186]: 166.71535806880107
+D[187, 187]: 165.3924650315296
+D[188, 188]: 161.15920264420598
+D[189, 189]: 158.9897796761289
+D[190, 190]: 156.69932852602298
+D[191, 191]: 155.1474245286608
+D[192, 192]: 153.30430244792964
+D[193, 193]: 150.6889613283825
+D[194, 194]: 149.59745712792053
+D[195, 195]: 145.114361340649
+D[196, 196]: 143.6853143260645
+D[197, 197]: 142.8345019925396
+D[198, 198]: 140.7219536909653
+D[199, 199]: 137.84607177814118
+D[200, 200]: 135.6926484310087
+D[201, 201]: 133.98376596145764
+D[202, 202]: 131.08509732931736
+D[203, 203]: 130.20728324964767
+D[204, 204]: 127.98795933855641
+D[205, 205]: 125.40103480844904
+D[206, 206]: 122.52460996721456
+D[207, 207]: 120.95511713524475
+D[208, 208]: 118.50142853564547
+D[209, 209]: 116.92228305227393
+D[210, 210]: 115.04291781984944
+D[211, 211]: 111.4176700025266
+D[212, 212]: 110.45451700439712
+D[213, 213]: 109.83979931994654
+D[214, 214]: 107.71559757896438
+D[215, 215]: 105.63014260582734
+D[216, 216]: 103.77811074084906
+D[217, 217]: 101.97013533417939
+D[218, 218]: 101.35474616986512
+new_k=219</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-5-output-2.png" class="img-fluid"></p>
+<p><img src="index_files/figure-html/cell-6-output-2.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-6-output-3.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="part-ii-spectral-community-detection" class="level2">
+<h2 class="anchored" data-anchor-id="part-ii-spectral-community-detection">Part II: Spectral Community Detection</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Karate Clubs Graph</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> networkx <span class="im">as</span> nx</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> nx.karate_club_graph()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>layout <span class="op">=</span> nx.layout.fruchterman_reingold_layout(G)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>nx.draw(G, layout, with_labels<span class="op">=</span><span class="va">True</span>, node_color <span class="op">=</span> <span class="st">"steelblue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>clubs <span class="op">=</span> nx.get_node_attributes(G, <span class="st">"club"</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>nx.draw(G, layout,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        with_labels<span class="op">=</span><span class="va">True</span>, </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        node_color <span class="op">=</span> [<span class="st">"orange"</span> <span class="cf">if</span> clubs[i] <span class="op">==</span> <span class="st">"Officer"</span> <span class="cf">else</span> <span class="st">"steelblue"</span> <span class="cf">for</span> i <span class="kw">in</span> G.nodes()],</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        edgecolors <span class="op">=</span> <span class="st">"black"</span> <span class="co"># confusingly, this is the color of node borders, not of edges</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        ) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjacency Matrix for unabled graph G</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> nx.adjacency_matrix(G).toarray()</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>A</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>array([[0, 4, 5, ..., 2, 0, 0],
+       [4, 0, 6, ..., 0, 0, 0],
+       [5, 6, 0, ..., 0, 2, 0],
+       ...,
+       [2, 0, 0, ..., 0, 4, 4],
+       [0, 0, 2, ..., 4, 0, 5],
+       [0, 0, 0, ..., 4, 5, 0]])</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Symmetrize A</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> A <span class="op">+</span> A.T</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>A[A <span class="op">&gt;</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>A</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>array([[0, 1, 1, ..., 1, 0, 0],
+       [1, 0, 1, ..., 0, 0, 0],
+       [1, 1, 0, ..., 0, 1, 0],
+       ...,
+       [1, 0, 0, ..., 0, 1, 1],
+       [0, 0, 1, ..., 1, 0, 1],
+       [0, 0, 0, ..., 1, 1, 0]])</code></pre>
 </div>
 </div>
 
