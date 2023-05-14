@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/project/blog-post.html",
       "/posts/timnit-gebru/index.html",
       "/posts/unsupervised-learning/index.html",
       "/posts/auditing-bias/index.html",
